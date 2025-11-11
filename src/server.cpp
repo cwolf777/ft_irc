@@ -6,23 +6,26 @@
 /*   By: phhofman <phhofman@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/07 15:11:45 by phhofman          #+#    #+#             */
-/*   Updated: 2025/11/10 09:58:26 by phhofman         ###   ########.fr       */
+/*   Updated: 2025/11/11 17:04:51 by phhofman         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <sys/socket.h>
 #include <iostream>
 #include <sys/types.h>
-#include <sys/socket.h>
 #include <netinet/in.h>
 #include <unistd.h>
+#include <string>
+#include <vector>
+#include <fcntl.h>
+#include <poll.h>
 
 int main(void)
 {
 
-    int socket_fd = socket(AF_INET, SOCK_STREAM, 0);
+    int server_fd = socket(AF_INET, SOCK_STREAM, 0);
 
-    if (socket_fd < 0)
+    if (server_fd < 0)
     {
         std::cerr << "ERROR: Socket could not be created!" << std::endl;
         return 1;
@@ -33,29 +36,59 @@ int main(void)
     addr.sin_addr.s_addr = INADDR_ANY; // all Interfaces
     addr.sin_port = htons(6667);       // Port 6667
 
-    if (bind(socket_fd, (struct sockaddr *)&addr, sizeof(addr)) < 0)
+    if (bind(server_fd, (struct sockaddr *)&addr, sizeof(addr)) < 0)
     {
-        std::cerr << "ERROR: Socket could not bin!" << std::endl;
+        std::cerr << "ERROR: Socket could not bind!" << std::endl;
         return 1;
     }
-    if (listen(socket_fd, 5) < 0)
+    if (listen(server_fd, 5) < 0)
     {
         std::cerr << "Error: Socket could not listen\n";
         return 1;
     }
 
+    int flags = fcntl(server_fd, F_GETFL, 0);
+    fcntl(server_fd, F_SETFL, flags | O_NONBLOCK);
+
     std::cout << "server runnning on port 6667...\n";
 
+    std::vector<pollfd> fds;
+
+    fds.push_back({server_fd, POLLIN, 0});
     while (true)
     {
-        int client_fd = accept(socket_fd, nullptr, nullptr);
-        if (client_fd > 0)
+        poll(fds.data(), fds.size(), -1);
+        if (fds[0].revents & POLLIN)
         {
-            std::cout << "connected!\n";
-            close(client_fd);
+            int client_fd = accept(server_fd, nullptr, nullptr);
+            if (client_fd >= 0)
+            {
+                std::cout << "new client connected!\n";
+                fds.push_back({client_fd, POLLIN, 0});
+            }
+        }
+        for (size_t i = 1; i < fds.size(); ++i)
+        {
+            if (fds[i].revents & POLLIN)
+            {
+                char buffer[1024];
+                int n = recv(fds[i].fd, buffer, sizeof(buffer) - 1, 0);
+                if (n <= 0)
+                {
+                    std::cout << "Client disconnected!\n";
+                    close(fds[i].fd);
+                    fds.erase(fds.begin() + i);
+                    i--;
+                }
+                else
+                {
+                    buffer[n] = '\0';
+                    std::cout << "Client: " << buffer << "\n";
+                    send(fds[i].fd, buffer, n, 0); // Echo
+                }
+            }
         }
     }
-
-    close(socket_fd);
+    close(server_fd);
     return 0;
 }
