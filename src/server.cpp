@@ -9,11 +9,12 @@
 #include <fcntl.h>
 #include <poll.h>
 
-#include "User.hpp"
+#include "Client.hpp"
+
+std::string str("hallo");
 
 int main(void)
 {
-
     int server_fd = socket(AF_INET, SOCK_STREAM, 0);
 
     if (server_fd < 0)
@@ -44,7 +45,7 @@ int main(void)
     std::cout << "server runnning on port 6667...\n";
 
     std::vector<pollfd> fds;
-    std::vector<User> users;
+    std::vector<Client> users;
 
     fds.push_back({server_fd, POLLIN, 0});
     while (true)
