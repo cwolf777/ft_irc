@@ -3,16 +3,40 @@
 
 void handlePass(User &user, const std::vector<std::string> &args)
 {
-    // pruefen ob registriert
-    // pruefen ob arg == 2
-    // preufen ob arg[1] == passwort von user
-    // falls ja, speichern dass pw akzeptiert wurde
+    if (user.isRegistered())
+    {
+        user.sendMessage("462 :You may not reregister");
+        return;
+    }
+    if (args.size() < 2)
+    {
+        user.sendMessage("461 PASS :Not enough parameters");
+        return;
+    }
+    std::string pass = args[1];
+
+    //if (pass != server.getPass())
+    //{
+    //  user.sendMessage("464 :Password incorrect");
+    //  return;
+    //}
+
+    //noch nicht registriert, da Nick noch nicht gesetzt 
 }
 
 void handleNick(User &user, const std::vector<std::string> &args)
 {
-    //checken ob Nick erlaubt (Laenge, bestimmte Zeichen)
-    //checken ob Name bereits vergeben ist
+    if (args.size() < 2)
+    {
+        user.sendMessage("431 :No nickname given");
+        return;
+    }
+    // if (!checkNickname(args[1]))
+    // {
+    //     user.sendMessage("432 :Erroneous nickname");
+    //     return;
+    // }
+    //checken ob Name bereits vergeben ist bei allen Usern in Server
     //wenn ok, nickname setten fuer user
 }
 
