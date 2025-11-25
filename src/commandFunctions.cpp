@@ -105,8 +105,11 @@ void handleMode(Server &server, Client &client, const std::vector<std::string> &
         client.sendMessage("461 MODE :Not enough parameters");
         return;
     }
+
+    
     std::string channelName = args[1];
     Channel *channel = server.getChannel(channelName);
+
     if (!channel)
     {
         client.sendMessage("403 " + channelName + " :No such channel");
@@ -118,8 +121,13 @@ void handleMode(Server &server, Client &client, const std::vector<std::string> &
         return;
     }
 
-    //nur MODE <channel> ignoriere ich erstmal
+    //nur MODE <channel> ignoriere ich erstmal  gib aktuelle Einstellungen aus
 
+    if (!channel->isOperator(client))
+    {
+        client.sendMessage("482 " + channelName + " :You're not channel operator");
+        return;
+    }
 
     std::string modeString = args[2];
     bool adding = true;
@@ -141,18 +149,21 @@ void handleMode(Server &server, Client &client, const std::vector<std::string> &
         if (m == '-')
         {
             adding = false;
-            continue;;
+            continue;
         }
-        switch(m)
+
+        switch (m)
         {
             case 'i':
                 channel->setInviteOnly(adding);
                 appliedModes += (adding ? "+i" : "-i");
                 break;
+
             case 't':
                 channel->setTopicProtected(adding);
                 appliedModes += (adding ? "+t" : "-t");
                 break;
+
             case 'k':
                 if (adding == true)
                 {
@@ -172,6 +183,7 @@ void handleMode(Server &server, Client &client, const std::vector<std::string> &
                     appliedModes += "-k";
                 }
                 break;
+
             case 'l':
                 if (adding)
                 {
@@ -181,6 +193,11 @@ void handleMode(Server &server, Client &client, const std::vector<std::string> &
                         return;
                     }
                     size_t limit = atoi(args[paramIndex].c_str());
+                    if (limit <= 0)
+                    {
+                        client.sendMessage("461 MODE :Limit must be > 0");
+                        return;
+                    }
                     channel->setLimit(limit);
                     appliedModes += "+l";
                     appliedParams.push_back(args[paramIndex]);
@@ -188,18 +205,51 @@ void handleMode(Server &server, Client &client, const std::vector<std::string> &
                 }
                 else
                 {
-                    channel->clearPassword();
-                    appliedModes += "-l";
+                    if (channel->isUserLimitSet() == true)
+                        appliedModes += "-l";
+                    channel->clearUserLimit();
                 }
                 break;
+
             case 'o':
-                //DAS FEHLT NOCH KOMPLETT
+                if (paramIndex >= args.size())
+                {
+                    client.sendMessage("461 MODE :Not enough parameters");
+                    return;                    
+                }
+                std::string nick = args[paramIndex++];
+                Client *target = server.getClientByNick(nick);
+
+                if (!target || !channel->isMember(nick))
+                {
+                    client.sendMessage("441 " + nick + " " + channelName + " :They aren't on that channel");
+                    return;
+                }
+                if (adding)
+                    channel->addOperator(*target);
+                else
+                    channel->removeOperator(*target);
+
+                appliedModes += (adding ? "+o" : "-o");
+                appliedParams.push_back(nick);
+
                 break;
             default:
+                 client.sendMessage("472 " + std::string(1, m) + " :is unknown mode char");
                 break;
         }
     }
+    
+    if (!appliedModes.empty())
+    {
+        std::string msg = ":" + client.getNickname() + " MODE " + channelName + " " + appliedModes;
 
+        for (size_t i = 0; i < appliedParams.size(); i++)
+            msg += " " + appliedParams[i];
+
+        // for (Client* member : channel->getMembers())
+        //     member->sendMessage(msg);      //msg an JEDEN clienten der im Channel ist
+    }
 }
 
 void handleQuit(Client &client, const std::vector<std::string> &args)

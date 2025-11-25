@@ -67,3 +67,46 @@ void Channel::setLimit(int limit)
 {
     _userlimit = limit;
 }
+
+void Channel::addOperator(Client& client)
+{
+    for (auto it = _operatorList.begin(); it != _operatorList.end(); ++it)
+    {
+        if (it->getNickname() == client.getNickname())
+            return;
+    }
+    _operatorList.push_back(client);
+}
+
+void Channel::removeOperator(Client& client)
+{
+    for (auto it = _operatorList.begin(); it != _operatorList.end(); ++it)
+    {
+        if (it->getNickname() == client.getNickname())
+        {
+            _operatorList.erase(it);
+            return ;
+        }
+        return ;
+    }
+}
+
+bool Channel::isOperator(Client& client)
+{
+    for (auto it = _operatorList.begin(); it != _operatorList.end(); ++it)
+    {
+        if (it->getNickname() == client.getNickname())
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool Channel::isUserLimitSet()
+{
+    if (_userLimitSet == true)
+        return true;
+    else
+        return false;
+}

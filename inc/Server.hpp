@@ -53,4 +53,5 @@ public:
     bool isUsernameUsed(const std::string &username);
     std::string getOperatorName();
     Channel* getChannel(const std::string &name);
+    Client* getClientByNick(const std::string nick);
 };

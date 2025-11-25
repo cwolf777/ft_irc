@@ -33,5 +33,9 @@ public:
     void setPassword(const std::string password);
     void clearUserLimit();
     void setLimit(int limit);
+    bool isUserLimitSet();
+    void addOperator(Client& client);
+    void removeOperator(Client& client);
+    bool isOperator(Client& client);
 
 };

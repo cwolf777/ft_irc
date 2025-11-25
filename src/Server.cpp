@@ -160,3 +160,16 @@ Channel* Server::getChannel(const std::string &name)
     }
     return nullptr;
 }
+
+Client* Server::getClientByNick(const std::string nick)
+{
+    for (auto it = _clients.begin(); it != _clients.end(); ++it)
+    {
+        if (it->getNickname() == nick)
+        {
+            return &(*it);
+        }
+    }
+    return nullptr;
+}
+
