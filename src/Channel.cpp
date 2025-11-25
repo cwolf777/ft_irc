@@ -22,3 +22,48 @@ Channel &Channel::operator=(const Channel &other)
 }
 
 Channel::~Channel() {}
+
+std::string Channel::getName()
+{
+    return _name;
+}
+
+bool Channel::isMember(const std::string &name)
+{
+    for (auto it = _memberList.begin(); it != _memberList.end(); ++it)
+    {
+        if (it->getNickname() == name)
+            return true;
+    }
+    return false;
+}
+
+void Channel::setInviteOnly(bool inviteOnly)
+{
+    _inviteOnly = inviteOnly;
+}
+
+void Channel::setTopicProtected(bool topicProtected)
+{
+    _topicProtected = topicProtected;
+}
+
+void Channel::clearPassword()
+{
+    _passwordSet = false;
+}
+
+void Channel::setPassword(const std::string password)
+{
+    _password = password;
+}
+
+void Channel::clearUserLimit()
+{
+    _userLimitSet = false;
+}
+
+void Channel::setLimit(int limit)
+{
+    _userlimit = limit;
+}

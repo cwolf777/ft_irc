@@ -30,11 +30,11 @@ void commandHandler(Server &server, Client &client, std::string msg) //+ welcher
     }
     else if (arg[0] == "OPER")
     {
-        handleOper(client, arg);
+        handleOper(server, client, arg);
     }
     else if (arg[0] == "MODE")
     {
-        handleMode(client, arg);
+        handleMode(server, client, arg);
     }
     else if (arg[0] == "QUIT")
     {

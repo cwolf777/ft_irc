@@ -1,16 +1,16 @@
 
 #include "Server.hpp"
 
-Server::Server(int port, std::string password) : _port(port), _password(password), _server_fd(-1) {}
+Server::Server(int port, std::string password) : _port(port), _serverPassword(password), _server_fd(-1) {}
 
-Server::Server(const Server &other) : _port(other._port), _password(other._password), _server_fd(other._server_fd), _clients(other._clients) {}
+Server::Server(const Server &other) : _port(other._port), _serverPassword(other._serverPassword), _server_fd(other._server_fd), _clients(other._clients) {}
 
 Server &Server::operator=(const Server &other)
 {
     if (this == &other)
         return *this;
     _port = other._port;
-    _password = other._password;
+    _serverPassword = other._serverPassword;
     _server_fd = other._server_fd;
 
     return *this;
@@ -85,7 +85,7 @@ void Server::run()
                     close(_client_fds[i].fd);
                     _client_fds.erase(_client_fds.begin() + i);
                     _clients.erase(_clients.begin() + i);
-                    i--;
+                    i--;_clients
                     continue;
                 }
                 buffer[n] = '\0';
@@ -113,22 +113,50 @@ void Server::run()
 
 std::string Server::getPassword()
 {
-    return _password;
+    return _serverPassword;
 }
 
 void Server::setPassword(std::string pass)
 {
-    _password = pass;
+    _serverPassword = pass;
 }
 
-bool Server::isNickAvailable(const std::string &nick)
+bool Server::isNickUsed(const std::string &nick)
 {
-    std::string usedNick;
-
     for (auto it = _clients.begin(); it != _clients.end(); it++)
     {
         if (it->getNickname() == nick)
-            return false;
+            return true;
     }
-    return true;
+    return false;
+}
+
+const std::string Server::getOperatorPassword()
+{
+    return _operatorPassword;
+}
+
+bool Server::isUsernameUsed(const std::string &username)
+{
+    for (auto it = _clients.begin(); it != _clients.end(); it++)
+    {
+        if (it->getUsername() == username)
+            return true;
+    }
+    return false;
+}
+
+std::string Server::getOperatorName()
+{
+    return _operatorName;
+}
+
+Channel* Server::getChannel(const std::string &name)
+{
+    for (size_t i = 0; i < _channel.size(); i++)
+    {
+        if (_channel[i].getName() == name)
+            return &_channel[i];
+    }
+    return nullptr;
 }

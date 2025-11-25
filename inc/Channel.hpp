@@ -13,7 +13,9 @@ private:
     // verscheidene Modes....
     bool _inviteOnly;
     bool _topicProtected;
+    bool _passwordSet;
     std::string _password;
+    bool _userLimitSet;
     int _userlimit;
 
 public:
@@ -22,4 +24,14 @@ public:
     Channel(const Channel &other);
     Channel &operator=(const Channel &other);
     ~Channel();
+
+    std::string getName();
+    bool isMember(const std::string &name);
+    void setInviteOnly(bool inviteOnly);
+    void setTopicProtected(bool topicProtected);
+    void clearPassword();
+    void setPassword(const std::string password);
+    void clearUserLimit();
+    void setLimit(int limit);
+
 };

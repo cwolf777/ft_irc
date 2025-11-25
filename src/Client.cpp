@@ -47,3 +47,18 @@ void Client::setNickname(std::string nick)
 {
     _nickname = nick;
 }
+
+void Client::setOperator(bool is_op)
+{
+    _is_op = is_op;
+}
+
+std::string Client::getUsername()
+{
+    return _username;
+}
+
+bool Client::getOperator()
+{
+    return _is_op;
+}

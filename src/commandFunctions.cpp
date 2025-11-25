@@ -42,7 +42,7 @@ void handleNick(Server &server, Client &client, const std::vector<std::string> &
     
     std::string newNickname = args[1];
 
-    if (!server.isNickAvailable(newNickname))
+    if (server.isNickUsed(newNickname))
     {
         client.sendMessage("433 :Nickname is already in use");
         return;        
@@ -58,28 +58,148 @@ void handleUser(Client &client, const std::vector<std::string> &args)
 {
     // USER <username> <hostname> <servername> :<realname>
     //USER chris 0 * :Christopher Klein
-    //-> hostna,e und serverbname ignoriert da eh schon bekannt
+    //-> hostname und serverbname ignoriert da eh schon bekannt
     
+
     // chekcen ob client bereits regestriert
     //chekcen ob genug paramenter
     //daten speichern (username etc)
     //client regestrien setRegistration(true)
+    //username != nickname
 }
 
-void handleOper(Client &client, const std::vector<std::string> &args)
+void handleOper(Server &server, Client &client, const std::vector<std::string> &args)
 {
-    // OPER <username> <password>
-    // checken ob 3 in arg
-    // checken ob Client uebrhaupt exestiert
-    // checken ob Operator PW uebereinstimmt
-    // Client zu Operator setten
-    // msg senden
+    // OPER <username> <password>             macht Client zu SERVER OPERATOR...
+
+    if (args.size() < 3)
+    {
+        client.sendMessage("461 OPER :Not enough parameters");
+        return;
+    }
+    std::string operatorName = args[1];
+    std::string password = args[2];
+    if (operatorName != server.getOperatorName())
+    {
+        client.sendMessage("491 :No O-lines for your host");
+        return;
+    }
+    if(server.getOperatorPassword() != password)
+    {
+        client.sendMessage("464 :Password incorrect");
+        return;        
+    }
+    client.setOperator(true);
+    client.sendMessage("381 :You are now an IRC operator");
 }
 
-void handleMode(Client &client, const std::vector<std::string> &args)
+void handleMode(Server &server, Client &client, const std::vector<std::string> &args)
 {
     // MODE <channel> <modes> [parameters]
-    // kein plan
+    //cechlken ob channel exestiert 
+    //checkebn ob client in channel ist 
+    //checken ob client operator ist 
+
+    if (args.size() < 2)
+    {
+        client.sendMessage("461 MODE :Not enough parameters");
+        return;
+    }
+    std::string channelName = args[1];
+    Channel *channel = server.getChannel(channelName);
+    if (!channel)
+    {
+        client.sendMessage("403 " + channelName + " :No such channel");
+        return;
+    }
+    if (!channel->isMember(client.getNickname()))
+    {
+        client.sendMessage("442 " + channelName + " :You're not on that channel");
+        return;
+    }
+
+    //nur MODE <channel> ignoriere ich erstmal
+
+
+    std::string modeString = args[2];
+    bool adding = true;
+    size_t paramIndex = 3;
+
+    //broadcast string
+    std::string appliedModes;
+    std::vector<std::string> appliedParams;
+
+    for (size_t i = 0; i < modeString.size(); i++)
+    {
+        char m = modeString[i];
+
+        if (m == '+')
+        {
+            adding = true;
+            continue;
+        }
+        if (m == '-')
+        {
+            adding = false;
+            continue;;
+        }
+        switch(m)
+        {
+            case 'i':
+                channel->setInviteOnly(adding);
+                appliedModes += (adding ? "+i" : "-i");
+                break;
+            case 't':
+                channel->setTopicProtected(adding);
+                appliedModes += (adding ? "+t" : "-t");
+                break;
+            case 'k':
+                if (adding == true)
+                {
+                    if (paramIndex >= args.size())
+                    {
+                        client.sendMessage("461 MODE :Not enough parameters");
+                        return;
+                    }
+                    channel->setPassword(args[paramIndex]);
+                    appliedModes += "+k";
+                    appliedParams.push_back(args[paramIndex]);
+                    paramIndex++; 
+                }
+                else
+                {
+                    channel->clearPassword();
+                    appliedModes += "-k";
+                }
+                break;
+            case 'l':
+                if (adding)
+                {
+                    if (paramIndex >= args.size())
+                    {
+                        client.sendMessage("461 MODE :Not enough parameters");
+                        return;
+                    }
+                    size_t limit = atoi(args[paramIndex].c_str());
+                    channel->setLimit(limit);
+                    appliedModes += "+l";
+                    appliedParams.push_back(args[paramIndex]);
+                    paramIndex++;
+                }
+                else
+                {
+                    channel->clearPassword();
+                    appliedModes += "-l";
+                }
+                break;
+            case 'o':
+                //DAS FEHLT NOCH KOMPLETT
+                break;
+            default:
+                break;
+        }
+    }
+
 }
 
 void handleQuit(Client &client, const std::vector<std::string> &args)

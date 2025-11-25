@@ -11,6 +11,7 @@ class Client
 private:
     int _fd;
     std::string _nickname;
+    std::string _username;
     bool _registered;
     bool _is_op;
     bool _passwordCorrect;
@@ -27,4 +28,7 @@ public:
     void setNickname(std::string nick);
     void sendMessage(const std::string &msg);
     void setPasswordCorrect(bool passwordCorrect);
+    void setOperator(bool is_op);
+    std::string getUsername();
+    bool getOperator();
 };

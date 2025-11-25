@@ -9,8 +9,8 @@
 void handlePass(Server &server, Client &client, const std::vector<std::string> &args);
 void handleNick(Server &server, Client &client, const std::vector<std::string> &args);
 void handleClient(Client &client, const std::vector<std::string> &args);
-void handleOper(Client &client, const std::vector<std::string> &args);
-void handleMode(Client &client, const std::vector<std::string> &args);
+void handleOper(Server &server, Client &client, const std::vector<std::string> &args);
+void handleMode(Server &server, Client &client, const std::vector<std::string> &args);
 void handleQuit(Client &client, const std::vector<std::string> &args);
 void handleJoin(Client &client, const std::vector<std::string> &args);
 void handleTopic(Client &client, const std::vector<std::string> &args);
