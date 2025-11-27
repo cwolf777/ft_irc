@@ -29,7 +29,7 @@ void Client::setPasswordCorrect(bool passwordCorrect)
     _passwordCorrect = passwordCorrect;
 }
 
-std::string Client::getNickname()
+std::string Client::getNickname() const
 {
     return _nickname;
 }
@@ -44,12 +44,12 @@ void Client::setOperator(bool is_op)
     _is_op = is_op;
 }
 
-std::string Client::getUsername()
+std::string Client::getUsername() const
 {
     return _username;
 }
 
-bool Client::getOperator()
+bool Client::getOperator() const
 {
     return _is_op;
 }

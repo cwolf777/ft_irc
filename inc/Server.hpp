@@ -57,6 +57,19 @@ public:
     bool isNickUsed(const std::string &nick);
     bool isUsernameUsed(const std::string &username);
     // void handle_msg(std::string msg);
-    void handle_request(const Client &client, const IrcMsg &request);
     void send_response(const Client &client, const IrcMsg &response);
+
+    void handleRequest(Client &client, const IrcMsg &msg);
+    void handleCap(Client &client, const IrcMsg &msg);
+    void handlePass(Client &client, const IrcMsg &msg);
+    void handleNick(Client &client, const IrcMsg &msg);
+    void handleClient(Client &client, const IrcMsg &msg);
+    void handleOper(Client &client, const IrcMsg &msg);
+    void handleMode(Client &client, const IrcMsg &msg);
+    void handleQuit(Client &client, const IrcMsg &msg);
+    void handleJoin(Client &client, const IrcMsg &msg);
+    void handleTopic(Client &client, const IrcMsg &msg);
+    void handleKick(Client &client, const IrcMsg &msg);
+    void privMsg(Client &client, const IrcMsg &msg);
+    void handleNotice(Client &client, const IrcMsg &msg);
 };

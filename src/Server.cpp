@@ -119,7 +119,7 @@ void Server::run()
 
                         request.create(msg.substr(0, pos + 2));
                         std::cout << request << std::endl;
-                        handle_request(_clients[i], request);
+                        handleRequest(_clients[i], request);
                         msg = msg.substr(pos + 2);
                     }
                 }
@@ -195,21 +195,34 @@ Client Server::getClientByNick(const std::string nick) const
     throw ServerException("");
 }
 
-void Server::handle_request(const Client &client, const IrcMsg &request)
+void Server::handleRequest(Client &client, const IrcMsg &msg) //+ welcher client/client
 {
-    if (request.get_cmd() == IRC_CAP)
-    {
-        std::cout << "Send to client\n";
-        // _clients[i].sendMessage()
-        IrcMsg response(":irc.34 CAP * LS :\r\n");
-        send_response(client, response);
-        // TODO: TEST
-    }
 
-    if (request.get_cmd() == IRC_NICK)
+    const std::string cmd = msg.get_cmd();
+
+    void (Server::*functions[])(Client &, const IrcMsg &) = {
+        &Server::handleCap,
+        &Server::handlePass,
+        &Server::handleNick,
+        &Server::handleClient,
+        &Server::handleOper,
+        &Server::handleQuit,
+        &Server::handleJoin,
+        &Server::handleTopic,
+        &Server::handleKick,
+        &Server::privMsg,
+        &Server::handleNotice,
+    };
+
+    for (int i = 0; i < IRC_COMMANDS.size(); i++)
     {
-        // client.set_nickname()
+        if (cmd == IRC_COMMANDS[i])
+        {
+            (this->*functions[i])(client, msg);
+            return;
+        }
     }
+    throw ServerException("");
 }
 
 void Server::send_response(const Client &client, const IrcMsg &response)

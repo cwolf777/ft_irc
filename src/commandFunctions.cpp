@@ -1,9 +1,12 @@
-#include "commandFunctions.hpp"
 #include "Client.hpp"
 #include "Server.hpp"
 #include "commandUtils.hpp"
 
-void handlePass(const Server &server, Client &client, const IrcMsg &msg)
+void Server::handleCap(Client &client, const IrcMsg &msg)
+{
+}
+
+void Server::handlePass(Client &client, const IrcMsg &msg)
 {
     if (client.getRegistered())
     {
@@ -17,7 +20,7 @@ void handlePass(const Server &server, Client &client, const IrcMsg &msg)
     }
     std::string pass = msg.get_params()[0];
 
-    if (pass != server.getPassword())
+    if (pass != getPassword())
     {
         client.sendMessage("464 :Password incorrect");
         return;
@@ -25,7 +28,7 @@ void handlePass(const Server &server, Client &client, const IrcMsg &msg)
     client.setPasswordCorrect(true);
 }
 
-void handleNick(const Server &server, Client &client, const IrcMsg &msg)
+void Server::handleNick(Client &client, const IrcMsg &msg)
 {
     if (args.size() < 2)
     {
@@ -52,7 +55,7 @@ void handleNick(const Server &server, Client &client, const IrcMsg &msg)
     //: NICK <oldNick> <newNick>
 }
 
-void handleUser(const Server &server, Client &client, const IrcMsg &msg)
+void Server::handleUser(Client &client, const IrcMsg &msg)
 {
     // USER <username> <hostname> <servername> :<realname>
     // USER chris 0 * :Christopher Klein
@@ -65,7 +68,7 @@ void handleUser(const Server &server, Client &client, const IrcMsg &msg)
     // username != nickname
 }
 
-void handleOper(const Server &server, Client &client, const IrcMsg &msg)
+void Server::handleOper(Client &client, const IrcMsg &msg)
 {
     // OPER <username> <password>             macht Client zu SERVER OPERATOR...
 
@@ -90,7 +93,7 @@ void handleOper(const Server &server, Client &client, const IrcMsg &msg)
     client.sendMessage("381 :You are now an IRC operator");
 }
 
-void handleMode(const Server &server, Client &client, const IrcMsg &msg)
+void Server::handleMode(Client &client, const IrcMsg &msg)
 {
     // MODE <channel> <modes> [parameters]
     // cechlken ob channel exestiert
@@ -248,14 +251,14 @@ void handleMode(const Server &server, Client &client, const IrcMsg &msg)
     }
 }
 
-void handleQuit(const Server &server, Client &client, const IrcMsg &msg)
+void Server::handleQuit(Client &client, const IrcMsg &msg)
 {
     // braodcast to channel
     // remove Client from channel
     // disconnect Client
 }
 
-void handleJoin(const Server &server, Client &client, const IrcMsg &msg)
+void Server::handleJoin(Client &client, const IrcMsg &msg)
 {
     // check ob arg groesser als 2
     // channle name muss mit # anfangen?
@@ -264,7 +267,7 @@ void handleJoin(const Server &server, Client &client, const IrcMsg &msg)
     // boradcast join
 }
 
-void handleTopic(const Server &server, Client &client, const IrcMsg &msg)
+void Server::handleTopic(Client &client, const IrcMsg &msg)
 {
     // arg muss groeser gleich 2 sein
     //  arg[1] = channel name
@@ -274,7 +277,7 @@ void handleTopic(const Server &server, Client &client, const IrcMsg &msg)
     // if arg == 3 topic setzen (in channel struct) ((setter und getter func benutzen))
 }
 
-void handleKick(const Server &server, Client &client, const IrcMsg &msg)
+void Server::handleKick(Client &client, const IrcMsg &msg)
 {
     // arg muss groesser gleich 3 sein
     // arg[1] channel name
@@ -288,7 +291,7 @@ void handleKick(const Server &server, Client &client, const IrcMsg &msg)
     // Target aus Channel entfernen
 }
 
-void privMsg(const Server &server, Client &client, const IrcMsg &msg)
+void Server::privMsg(Client &client, const IrcMsg &msg)
 {
     // arg muss groesser gleich 3 sein
     // arg[1] channel name
@@ -300,4 +303,8 @@ void privMsg(const Server &server, Client &client, const IrcMsg &msg)
     // chekc if target is in channel
     // Grund zusammensetzen mit arg 3, etc falls mehr args
     // Target aus Channel entfernen
+}
+
+void Server::handleNotice(Client &client, const IrcMsg &msg)
+{
 }
