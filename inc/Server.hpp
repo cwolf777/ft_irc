@@ -20,7 +20,7 @@ class Server
 {
 private:
     int _port;
-    std::string _serverPassword;
+    std::string _password;
     int _server_fd;
     std::vector<Client> _clients;
     std::string _operatorName;
@@ -39,7 +39,7 @@ public:
         const char *what() const noexcept override { return _message.c_str(); }
     };
 
-    Server(int _port, std::string _serverPassword);
+    Server(int _port, std::string _password);
     Server(const Server &other);
     Server &operator=(const Server &other);
     ~Server();
@@ -47,14 +47,15 @@ public:
     void init(int domain);
     void run();
 
-    std::string getPassword();
+    std::string getPassword() const;
+    Channel getChannel(const std::string &name) const;
+    Client getClientByNick(const std::string nick) const;
+    const std::string getOperatorPassword() const;
+    std::string getOperatorName() const;
+
     void setPassword(std::string pass);
     bool isNickUsed(const std::string &nick);
-    const std::string getOperatorPassword();
     bool isUsernameUsed(const std::string &username);
-    std::string getOperatorName();
-    Channel *getChannel(const std::string &name);
-    Client *getClientByNick(const std::string nick);
     // void handle_msg(std::string msg);
     void handle_request(const Client &client, const IrcMsg &request);
     void send_response(const Client &client, const IrcMsg &response);

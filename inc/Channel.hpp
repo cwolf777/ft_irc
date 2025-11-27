@@ -25,7 +25,7 @@ public:
     Channel &operator=(const Channel &other);
     ~Channel();
 
-    std::string getName();
+    std::string getName() const;
     bool isMember(const std::string &name);
     void setInviteOnly(bool inviteOnly);
     void setTopicProtected(bool topicProtected);
@@ -34,8 +34,7 @@ public:
     void clearUserLimit();
     void setLimit(int limit);
     bool isUserLimitSet();
-    void addOperator(Client& client);
-    void removeOperator(Client& client);
-    bool isOperator(Client& client);
-
+    void addOperator(Client &client);
+    void removeOperator(Client &client);
+    bool isOperator(Client &client);
 };

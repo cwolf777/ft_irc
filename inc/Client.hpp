@@ -20,16 +20,18 @@ private:
 public:
     Client();
     Client(int fd, std::string nickname, bool registered, bool is_op, bool passwordCorrect);
+    Client(int fd, std::string nickname, bool is_registerd, bool is_op);
     Client(const Client &other);
     Client &operator=(const Client &other);
     ~Client();
 
-    bool get_registered();
-    std::string getNickname();
+    int getFd() const;
+    bool getRegistered() const;
+    std::string getNickname() const;
+    std::string getUsername() const;
+    bool getOperator() const;
     void setNickname(std::string nick);
     void sendMessage(const std::string &msg);
     void setPasswordCorrect(bool passwordCorrect);
     void setOperator(bool is_op);
-    std::string getUsername();
-    bool getOperator();
 };

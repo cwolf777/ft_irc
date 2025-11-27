@@ -19,7 +19,7 @@ Server &Server::operator=(const Server &other)
     if (this == &other)
         return *this;
     _port = other._port;
-    _serverPassword = other._serverPassword;
+    _password = other._password;
     _server_fd = other._server_fd;
     _poll_fds = other._poll_fds;
     return *this;
@@ -96,7 +96,7 @@ void Server::run()
                     _poll_fds.erase(_poll_fds.begin() + i);
                     _clients.erase(_clients.begin() + i);
                     i--;
-                    _clients continue;
+                    continue;
                 }
                 if (bytes_recvd >= 512)
                 {
@@ -127,30 +127,20 @@ void Server::run()
                 {
                     std::cerr << e.what() << '\n';
                 }
-
-                // if (msg == "PASS abcdef")
-                // {
-                //     send(_poll_fds[i].fd, "HALLO!\n", 8, 0);
-                // }
-                // if (!_clients[i].get_registered())
-                // {
-                //     std::string msg(":irc.34 NOTICE * :Password required. Use: PASS <password>\r\n");
-                //     send(_poll_fds[i].fd, ":irc.34 NOTICE * :Password required. Use: PASS <password>\r\n", msg.size(), 0);
-                // }
             }
         }
     }
     close(_server_fd);
 }
 
-std::string Server::getPassword()
+std::string Server::getPassword() const
 {
-    return _serverPassword;
+    return _password;
 }
 
 void Server::setPassword(std::string pass)
 {
-    _serverPassword = pass;
+    _password = pass;
 }
 
 bool Server::isNickUsed(const std::string &nick)
@@ -163,7 +153,7 @@ bool Server::isNickUsed(const std::string &nick)
     return false;
 }
 
-const std::string Server::getOperatorPassword()
+const std::string Server::getOperatorPassword() const
 {
     return _operatorPassword;
 }
@@ -178,31 +168,31 @@ bool Server::isUsernameUsed(const std::string &username)
     return false;
 }
 
-std::string Server::getOperatorName()
+std::string Server::getOperatorName() const
 {
     return _operatorName;
 }
 
-Channel *Server::getChannel(const std::string &name)
+Channel Server::getChannel(const std::string &name) const
 {
     for (size_t i = 0; i < _channel.size(); i++)
     {
         if (_channel[i].getName() == name)
-            return &_channel[i];
+            return _channel[i];
     }
-    return nullptr;
+    throw ServerException("");
 }
 
-Client *Server::getClientByNick(const std::string nick)
+Client Server::getClientByNick(const std::string nick) const
 {
     for (auto it = _clients.begin(); it != _clients.end(); ++it)
     {
         if (it->getNickname() == nick)
         {
-            return &(*it);
+            return (*it);
         }
     }
-    return nullptr;
+    throw ServerException("");
 }
 
 void Server::handle_request(const Client &client, const IrcMsg &request)
@@ -218,11 +208,11 @@ void Server::handle_request(const Client &client, const IrcMsg &request)
 
     if (request.get_cmd() == IRC_NICK)
     {
-        client.set_nickname()
+        // client.set_nickname()
     }
 }
 
 void Server::send_response(const Client &client, const IrcMsg &response)
 {
-    send(client.get_fd(), response.get_msg().c_str(), response.get_msg().size(), 0);
+    send(client.getFd(), response.get_msg().c_str(), response.get_msg().size(), 0);
 }
