@@ -4,6 +4,7 @@
 
 void Server::handleCap(Client &client, const IrcMsg &msg)
 {
+
 }
 
 void Server::handlePass(Client &client, const IrcMsg &msg)
@@ -30,20 +31,20 @@ void Server::handlePass(Client &client, const IrcMsg &msg)
 
 void Server::handleNick(Client &client, const IrcMsg &msg)
 {
-    if (args.size() < 2)
+    if (msg.get_params().size() < 2)
     {
         client.sendMessage("431 :No nickname given");
         return;
     }
-    if (!checkNickname(args[1]))
+    if (!checkNickname(msg.get_params()[1]))
     {
         client.sendMessage("432 :Erroneous nickname");
         return;
     }
 
-    std::string newNickname = args[1];
+    std::string newNickname = msg.get_params()[0];
 
-    if (server.isNickUsed(newNickname))
+    if (isNickUsed(newNickname))
     {
         client.sendMessage("433 :Nickname is already in use");
         return;
@@ -72,19 +73,19 @@ void Server::handleOper(Client &client, const IrcMsg &msg)
 {
     // OPER <username> <password>             macht Client zu SERVER OPERATOR...
 
-    if (args.size() < 3)
+    if (msg.get_params().size() < 3)
     {
         client.sendMessage("461 OPER :Not enough parameters");
         return;
     }
-    std::string operatorName = args[1];
-    std::string password = args[2];
-    if (operatorName != server.getOperatorName())
+    std::string operatorName = msg.get_params()[0];
+    std::string password = msg.get_params()[1];
+    if (operatorName != getOperatorName())
     {
         client.sendMessage("491 :No O-lines for your host");
         return;
     }
-    if (server.getOperatorPassword() != password)
+    if (getOperatorPassword() != password)
     {
         client.sendMessage("464 :Password incorrect");
         return;
@@ -100,21 +101,18 @@ void Server::handleMode(Client &client, const IrcMsg &msg)
     // checkebn ob client in channel ist
     // checken ob client operator ist
 
-    if (args.size() < 2)
+    if ( msg.get_params().size() < 2)
     {
         client.sendMessage("461 MODE :Not enough parameters");
         return;
     }
 
-    std::string channelName = args[1];
-    Channel *channel = server.getChannel(channelName);
+    std::string channelName =  msg.get_params()[0];
+    Channel &channel = getChannel(channelName);
+    //exception catchen falls kein channel gefunden wurde !!!!!!!!!!!!!!!!!!!!!!!!!
 
-    if (!channel)
-    {
-        client.sendMessage("403 " + channelName + " :No such channel");
-        return;
-    }
-    if (!channel->isMember(client.getNickname()))
+    
+    if (!channel.isMember(client.getNickname()))
     {
         client.sendMessage("442 " + channelName + " :You're not on that channel");
         return;
@@ -122,13 +120,13 @@ void Server::handleMode(Client &client, const IrcMsg &msg)
 
     // nur MODE <channel> ignoriere ich erstmal  gib aktuelle Einstellungen aus
 
-    if (!channel->isOperator(client))
+    if (!channel.isOperator(client))
     {
         client.sendMessage("482 " + channelName + " :You're not channel operator");
         return;
     }
 
-    std::string modeString = args[2];
+    std::string modeString = msg.get_params()[1];
     bool adding = true;
     size_t paramIndex = 3;
 
@@ -154,31 +152,31 @@ void Server::handleMode(Client &client, const IrcMsg &msg)
         switch (m)
         {
         case 'i':
-            channel->setInviteOnly(adding);
+            channel.setInviteOnly(adding);
             appliedModes += (adding ? "+i" : "-i");
             break;
 
         case 't':
-            channel->setTopicProtected(adding);
+            channel.setTopicProtected(adding);
             appliedModes += (adding ? "+t" : "-t");
             break;
 
         case 'k':
             if (adding == true)
             {
-                if (paramIndex >= args.size())
+                if (paramIndex >= msg.get_params().size())
                 {
                     client.sendMessage("461 MODE :Not enough parameters");
                     return;
                 }
-                channel->setPassword(args[paramIndex]);
+                channel.setPassword(msg.get_params()[paramIndex]);
                 appliedModes += "+k";
-                appliedParams.push_back(args[paramIndex]);
+                appliedParams.push_back(msg.get_params()[paramIndex]);
                 paramIndex++;
             }
             else
             {
-                channel->clearPassword();
+                channel.clearPassword();
                 appliedModes += "-k";
             }
             break;
@@ -186,48 +184,48 @@ void Server::handleMode(Client &client, const IrcMsg &msg)
         case 'l':
             if (adding)
             {
-                if (paramIndex >= args.size())
+                if (paramIndex >= msg.get_params().size())
                 {
                     client.sendMessage("461 MODE :Not enough parameters");
                     return;
                 }
-                size_t limit = atoi(args[paramIndex].c_str());
+                size_t limit = atoi(msg.get_params()[paramIndex].c_str());
                 if (limit <= 0)
                 {
                     client.sendMessage("461 MODE :Limit must be > 0");
                     return;
                 }
-                channel->setLimit(limit);
+                channel.setLimit(limit);
                 appliedModes += "+l";
-                appliedParams.push_back(args[paramIndex]);
+                appliedParams.push_back(msg.get_params()[paramIndex]);
                 paramIndex++;
             }
             else
             {
-                if (channel->isUserLimitSet() == true)
+                if (channel.isUserLimitSet() == true)
                     appliedModes += "-l";
-                channel->clearUserLimit();
+                channel.clearUserLimit();
             }
             break;
 
         case 'o':
-            if (paramIndex >= args.size())
+            if (paramIndex >= msg.get_params().size())
             {
                 client.sendMessage("461 MODE :Not enough parameters");
                 return;
             }
-            std::string nick = args[paramIndex++];
-            Client *target = server.getClientByNick(nick);
+            std::string nick = msg.get_params()[paramIndex++];
+            Client &target = getClientByNick(nick);
 
-            if (!target || !channel->isMember(nick))
-            {
-                client.sendMessage("441 " + nick + " " + channelName + " :They aren't on that channel");
-                return;
-            }
+            // if (!target || !channel->isMember(nick)) ANSTATT NLLPOINTER ABFANGEN MUSS ICH EXCEPTION CATCHEN ABER DAS IM ODER NICHT VERGESSEN (!channel->isMember(nick))
+            // {
+            //     client.sendMessage("441 " + nick + " " + channelName + " :They aren't on that channel");
+            //     return;
+            // }  
             if (adding)
-                channel->addOperator(*target);
+                channel.addOperator(target);
             else
-                channel->removeOperator(*target);
+                channel.removeOperator(target);
 
             appliedModes += (adding ? "+o" : "-o");
             appliedParams.push_back(nick);

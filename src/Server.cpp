@@ -173,26 +173,24 @@ std::string Server::getOperatorName() const
     return _operatorName;
 }
 
-Channel Server::getChannel(const std::string &name) const
+Channel& Server::getChannel(const std::string &name)
 {
     for (size_t i = 0; i < _channel.size(); i++)
     {
         if (_channel[i].getName() == name)
-            return _channel[i];
+            return _channel[i];   // Referenz auf echtes Objekt
     }
-    throw ServerException("");
+    throw ServerException("Channel not found");
 }
 
-Client Server::getClientByNick(const std::string nick) const
+Client& Server::getClientByNick(const std::string nick)
 {
     for (auto it = _clients.begin(); it != _clients.end(); ++it)
     {
         if (it->getNickname() == nick)
-        {
-            return (*it);
-        }
+            return *it;
     }
-    throw ServerException("");
+    throw ServerException("Client not found");
 }
 
 void Server::handleRequest(Client &client, const IrcMsg &msg) //+ welcher client/client

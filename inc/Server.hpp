@@ -48,8 +48,8 @@ public:
     void run();
 
     std::string getPassword() const;
-    Channel getChannel(const std::string &name) const;
-    Client getClientByNick(const std::string nick) const;
+    Channel& getChannel(const std::string &name);
+    Client& getClientByNick(const std::string nick);
     const std::string getOperatorPassword() const;
     std::string getOperatorName() const;
 
