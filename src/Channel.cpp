@@ -110,3 +110,40 @@ bool Channel::isUserLimitSet()
     else
         return false;
 }
+
+void Channel::removeFromList(std::vector<Client> &list, const std::string &nick)
+{
+    for (auto it = list.begin(); it != list.end(); ++it)
+    {
+        if (it->getNickname() == nick)
+        {
+            list.erase(it);
+            return;
+        }
+    }
+}
+
+void Channel::removeMember(Client &client)
+{
+    removeFromList(_memberList, client.getNickname());
+}
+
+void Channel::removeOperator(Client &client)
+{
+    removeFromList(_operatorList, client.getNickname());
+}
+
+bool Channel::isPasswordSet() const
+{
+    return _passwordSet;
+}
+
+std::string Channel::getPassword() const
+{
+    return _password;
+}
+
+size_t Channel::getMemberCount() const
+{
+    return _memberList.size();
+}

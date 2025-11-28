@@ -227,3 +227,47 @@ void Server::send_response(const Client &client, const IrcMsg &response)
 {
     send(client.getFd(), response.get_msg().c_str(), response.get_msg().size(), 0);
 }
+
+
+ void Server::broadcastToChannel(const Client &client, Channel &channel, const std::string &msg)
+ {
+     const std::string senderNick = client.getNickname();
+
+    for (Client* member : channel.getMembers())
+    {
+        // Sende NICHT an den ursprünglichen Sender
+        if (member->getNickname() == senderNick)
+            continue;
+
+        member->sendMessage(msg);
+    }   
+ }
+
+ bool Server::channelExists(std::string channelName)
+ {
+    for (auto it = _channel.begin(); it != _channel.end(); it++)
+    {
+        if (it->getName() == channelName)
+        {
+            return true;
+        }
+    }
+    return false;
+ }
+
+ Channel& Server::getChannel(const std::string& name)
+{
+    for (auto it = _channel.begin(); it != _channel.end(); it++)
+    {
+        if (it->getName() == name)
+        {
+            return (*it);
+        }
+    }
+    throw ServerException("Channel does not exist");
+}
+
+size_t Channel::getUserLimit() const
+{
+    return _userlimit;
+}

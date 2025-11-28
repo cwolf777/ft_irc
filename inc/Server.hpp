@@ -72,4 +72,7 @@ public:
     void handleKick(Client &client, const IrcMsg &msg);
     void privMsg(Client &client, const IrcMsg &msg);
     void handleNotice(Client &client, const IrcMsg &msg);
+    void broadcastToChannel(const Client &client, Channel &channel, const std::string &msg);
+    bool channelExists(std::string channelName);
+
 };

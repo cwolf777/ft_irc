@@ -209,6 +209,7 @@ void Server::handleMode(Client &client, const IrcMsg &msg)
             break;
 
         case 'o':
+            {
             if (paramIndex >= msg.get_params().size())
             {
                 client.sendMessage("461 MODE :Not enough parameters");
@@ -231,6 +232,7 @@ void Server::handleMode(Client &client, const IrcMsg &msg)
             appliedParams.push_back(nick);
 
             break;
+            }
         default:
             client.sendMessage("472 " + std::string(1, m) + " :is unknown mode char");
             break;
@@ -251,10 +253,27 @@ void Server::handleMode(Client &client, const IrcMsg &msg)
 
 void Server::handleQuit(Client &client, const IrcMsg &msg)
 {
-    // braodcast to channel
-    // remove Client from channel
-    // disconnect Client
+    std::string quitMsg = "Client Quit";
+    if (!msg.get_params().empty())
+        quitMsg == msg.get_params()[0];
+    
+    std::string fullQuitMsg = ":" + client.getNickname() + "QUIT :" + quitMsg;
+
+    for (Channel &chan : _channel)
+    {
+        if (chan.isMember(client.getNickname()))
+        {
+            broadcastToChannel(client, chan, fullQuitMsg);
+            chan.removeMember(client);
+            chan.removeOperator(client);
+        }
+    }
+    client.sendMessage("ERROR :" + quitMsg);
+
+    //close client FDs
+    //remove from poll FDs
 }
+
 
 void Server::handleJoin(Client &client, const IrcMsg &msg)
 {
@@ -263,6 +282,51 @@ void Server::handleJoin(Client &client, const IrcMsg &msg)
     // get Channel class falls nein erstelle neuen Channel als class
     // add client to channel
     // boradcast join
+
+    if (msg.get_params().empty())
+    {
+        client.sendMessage("461 MODE :Not enough parameters");
+        return;    
+    }
+    std::string channelName = msg.get_params()[0];
+    std::string pass = (msg.get_params().size() > 1) ? msg.get_params()[1] : "";
+    if (channelName[0] != '#')
+    {
+        client.sendMessage("403 " + channelName + " :No such channel");
+        return ;
+    }
+    Channel* channel = nullptr;
+    if (!channelExists(channelName)) //no channel -> gets created
+    {
+        // _channel.push_back(Channel(channelName)); To Do: Channel Contructer fixen
+        channel = &_channel.back();
+
+        //First User must be Operator
+        channel->addOperator(client);
+    }
+    else
+    {
+        channel = &getChannel(channelName); //??? warum &
+    }
+    //if channel, check if pass correct 
+    if (channel->isPasswordSet() && channel->getPassword() != pass)
+    {
+        client.sendMessage("475 " + channelName + " :Bad channel key");
+        return;
+    }
+
+    if (channel->isUserLimitSet() && channel->getMemberCount() >= channel->getUserLimit())
+    {
+        client.sendMessage("471 " + channelName + " :Channel is full");
+        return;
+    }
+
+    //checken ob bereits member
+    //user hinzufuegen
+    //braoccast to channel
+    //topic an client senden wenn topic vorhanden 
+    //memberliste sendne? 
+
 }
 
 void Server::handleTopic(Client &client, const IrcMsg &msg)
