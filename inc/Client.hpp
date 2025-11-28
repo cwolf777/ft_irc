@@ -6,6 +6,7 @@
 #include <string>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <exception>
 
 class Client
 {
@@ -27,6 +28,7 @@ public:
 
     int getFd() const;
     bool getRegistered() const;
+    bool getPasswordCorrect() const;
     std::string getNickname() const;
     std::string getUsername() const;
     bool getOperator() const;
@@ -35,3 +37,5 @@ public:
     void setPasswordCorrect(bool passwordCorrect);
     void setOperator(bool is_op);
 };
+
+std::ostream &operator<<(std::ostream &os, const Client &client);

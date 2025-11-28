@@ -15,6 +15,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <exception>
+#include <algorithm>
 
 class Server
 {
@@ -56,8 +57,8 @@ public:
     void setPassword(std::string pass);
     bool isNickUsed(const std::string &nick);
     bool isUsernameUsed(const std::string &username);
-    // void handle_msg(std::string msg);
-    void send_response(const Client &client, const IrcMsg &response);
+    void sendResponse(const Client &client, const IrcMsg &response) const;
+    void sendResponse(const Client &client, const std::string &msg) const;
 
     void handleRequest(Client &client, const IrcMsg &msg);
     void handleCap(Client &client, const IrcMsg &msg);
@@ -72,4 +73,7 @@ public:
     void handleKick(Client &client, const IrcMsg &msg);
     void privMsg(Client &client, const IrcMsg &msg);
     void handleNotice(Client &client, const IrcMsg &msg);
+
+    void Server::connectClient(void);
+    void Server::disconnectClient(Client &client, int id);
 };

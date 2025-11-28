@@ -91,25 +91,21 @@ void Server::run()
                 bytes_recvd = recv(_poll_fds[i].fd, buffer, sizeof(buffer) - 1, 0);
                 if (bytes_recvd <= 0)
                 {
-                    std::cout << "Client disconnected!\n";
-                    close(_poll_fds[i].fd);
-                    _poll_fds.erase(_poll_fds.begin() + i);
-                    _clients.erase(_clients.begin() + i);
+                    disconnectClient(_clients[i], i);
                     i--;
                     continue;
                 }
                 if (bytes_recvd >= 512)
                 {
-                    std::cout << "SPAM!!! Client disconnected!\n";
-                    close(_poll_fds[i].fd);
-                    _poll_fds.erase(_poll_fds.begin() + i);
-                    _clients.erase(_clients.begin() + i);
+                    std::cout << "SPAM!!!" << std::endl;
+
+                    disconnectClient(_clients[i], i);
                     i--;
                     continue;
                 }
                 buffer[bytes_recvd] = '\0';
                 std::string msg(buffer);
-                std::cout << "Client: " << msg << "\n";
+                std::cout << "Client: " << msg << std::endl;
                 IrcMsg request;
                 try
                 {
@@ -125,7 +121,7 @@ void Server::run()
                 }
                 catch (const IrcMsg::IrcMsgException &e)
                 {
-                    std::cerr << e.what() << '\n';
+                    std::cerr << e.what() << std::endl;
                 }
             }
         }
@@ -133,69 +129,7 @@ void Server::run()
     close(_server_fd);
 }
 
-std::string Server::getPassword() const
-{
-    return _password;
-}
-
-void Server::setPassword(std::string pass)
-{
-    _password = pass;
-}
-
-bool Server::isNickUsed(const std::string &nick)
-{
-    for (auto it = _clients.begin(); it != _clients.end(); it++)
-    {
-        if (it->getNickname() == nick)
-            return true;
-    }
-    return false;
-}
-
-const std::string Server::getOperatorPassword() const
-{
-    return _operatorPassword;
-}
-
-bool Server::isUsernameUsed(const std::string &username)
-{
-    for (auto it = _clients.begin(); it != _clients.end(); it++)
-    {
-        if (it->getUsername() == username)
-            return true;
-    }
-    return false;
-}
-
-std::string Server::getOperatorName() const
-{
-    return _operatorName;
-}
-
-Channel Server::getChannel(const std::string &name) const
-{
-    for (size_t i = 0; i < _channel.size(); i++)
-    {
-        if (_channel[i].getName() == name)
-            return _channel[i];
-    }
-    throw ServerException("");
-}
-
-Client Server::getClientByNick(const std::string nick) const
-{
-    for (auto it = _clients.begin(); it != _clients.end(); ++it)
-    {
-        if (it->getNickname() == nick)
-        {
-            return (*it);
-        }
-    }
-    throw ServerException("");
-}
-
-void Server::handleRequest(Client &client, const IrcMsg &msg) //+ welcher client/client
+void Server::handleRequest(Client &client, const IrcMsg &msg)
 {
 
     const std::string cmd = msg.get_cmd();
@@ -222,10 +156,54 @@ void Server::handleRequest(Client &client, const IrcMsg &msg) //+ welcher client
             return;
         }
     }
-    throw ServerException("");
+    throw ServerException("Invalid Cmd");
 }
 
-void Server::send_response(const Client &client, const IrcMsg &response)
+void Server::sendResponse(const Client &client, const IrcMsg &response) const
 {
     send(client.getFd(), response.get_msg().c_str(), response.get_msg().size(), 0);
+}
+
+void Server::sendResponse(const Client &client, const std::string &msg) const
+{
+    send(client.getFd(), msg.c_str(), msg.size(), 0);
+}
+
+void Server::connectClient(void)
+{
+    int client_fd = accept(_poll_fds[0].fd, nullptr, nullptr);
+    if (client_fd >= 0)
+    {
+        std::cout << "new client connected!\n";
+        _poll_fds.push_back(pollfd{client_fd, POLLIN, 0});
+        _clients.push_back(Client(client_fd, "", false, false));
+    }
+}
+
+void Server::disconnectClient(Client &client, int id)
+{
+    int client_fd = client.getFd();
+
+    auto it = std::find_if(_clients.begin(), _clients.end(),
+                           [client_fd](const Client &c)
+                           {
+                               return c.getFd() == client_fd;
+                           });
+
+    if (it != _clients.end())
+    {
+        int index = std::distance(_clients.begin(), it);
+
+        std::cout << client << std::endl;
+        std::cout << "Disconnected!" << std::endl;
+
+        close(client_fd); // TODO: close maybe in Client destructor
+        _poll_fds.erase(_poll_fds.begin() + index);
+        _clients.erase(it);
+    }
+    else
+    {
+        throw ServerException("Error: Client not found in the list.");
+        std::cerr << "Error: Client not found in the list." << std::endl;
+    }
 }
