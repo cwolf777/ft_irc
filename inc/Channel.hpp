@@ -45,5 +45,7 @@ public:
     const std::vector<Client*>& getMembers() const;
     size_t getMemberCount() const;
     size_t getUserLimit() const;
-
+    std::string getTopic() const;
+    void setTopic(std::string topic);
+    bool isTopicProtected() const;
 };

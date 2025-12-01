@@ -152,3 +152,18 @@ size_t Channel::getUserLimit() const
 {
     return _userlimit;
 }
+
+std::string Channel::getTopic() const
+{
+    return _topic;
+}
+
+void Channel::setTopic(std::string topic)
+{
+    _topic = topic;
+}
+
+bool Channel::isTopicProtected() const
+{
+    return _topicProtected;
+}
