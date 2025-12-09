@@ -34,6 +34,9 @@ public:
     std::string getUsername() const;
     std::string getRealname() const;
     bool getIsRegistered() const;
+    bool hasNick() const;
+    bool hasUser() const;
+    bool hasPass() const;
 
     void setNickname(const std::string &nick);
     void setUsername(const std::string &name);

@@ -34,15 +34,44 @@ void Server::handleRequest(Client &client, const IrcMsg &msg)
 
 void Server::handleCap(Client &client, const IrcMsg &msg)
 {
-    (void)msg;
-    sendResponse(client, "CAP * LS\r\n");
+    if (client.getIsRegistered())
+    {
+        std::cout << "Warning: Registered client sent CAP command. Ignoring." << std::endl;
+        return;
+    }
+
+    if (msg.get_params().size() < 1)
+    {
+        // TODO: CAP needs params
+        return;
+    }
+
+    if (msg.get_params()[0] == "LS")
+    {
+        sendResponse(client, "CAP * LS\r\n");
+        return;
+    }
+
+    if (msg.get_params()[0] == "END")
+    {
+        if (!client.hasNick())
+            sendResponse(client, "451 * :You have not registered\r\n");
+        if (!client.hasUser())
+            sendResponse(client, "451 * :You have not registered\r\n");
+        if (!client.hasPass())
+            sendResponse(client, "451 * :You have not registered, Password required\r\n");
+        if (client.canRegister())
+            sendWelcomeMessage(client);
+
+        return;
+    }
 }
 
 void Server::handlePass(Client &client, const IrcMsg &msg)
 {
     if (client.getIsRegistered())
     {
-        sendResponse(client, "462 :You may not reregister\r\n");
+        sendResponse(client, "462 :You may not register\r\n");
         return;
     }
     if (msg.get_params().size() < 1)
@@ -58,8 +87,8 @@ void Server::handlePass(Client &client, const IrcMsg &msg)
         return;
     }
     client.setHasPass(true);
-    if (client.canRegister())
-        sendWelcomeMessage(client);
+    // if (client.canRegister())
+    //     sendWelcomeMessage(client);
 }
 
 void Server::handleNick(Client &client, const IrcMsg &msg)
@@ -84,8 +113,8 @@ void Server::handleNick(Client &client, const IrcMsg &msg)
     {
         sendResponse(client, "432 :Erroneous nickname");
     }
-    if (client.canRegister())
-        sendWelcomeMessage(client);
+    // if (client.canRegister())
+    //     sendWelcomeMessage(client);
 
     // Nachricht an alle Clients ausser beim ersten setzen dbeim einloggen:
     //: NICK <oldNick> <newNick>
@@ -113,6 +142,6 @@ void Server::handleUser(Client &client, const IrcMsg &msg)
     client.setRealname(params[4]);
     client.setHasUser(true);
 
-    if (client.canRegister())
-        sendWelcomeMessage(client);
+    // if (client.canRegister())
+    //     sendWelcomeMessage(client);
 }

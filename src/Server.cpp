@@ -155,6 +155,7 @@ void Server::sendResponse(const Client &client, const char *msg) const
 void Server::sendWelcomeMessage(const Client &client) const
 {
     std::string msg(":TEST_SERVER_34 001 " + client.getNickname() + "Welcome to the IRC Network 34!");
+    std::cout << "Server to client[" << client.getFd() << "]: " << msg << std::endl;
     send(client.getFd(), msg.c_str(), msg.size(), 0);
 }
 

@@ -113,6 +113,21 @@ bool Client::getIsRegistered() const
     return _isRegistered;
 }
 
+bool Client::hasNick() const
+{
+    return _hasNick;
+}
+
+bool Client::hasUser() const
+{
+    return _hasUser;
+}
+
+bool Client::hasPass() const
+{
+    return _hasPass;
+}
+
 void Client::setNickname(const std::string &nick)
 {
     if (!checkNickname(nick))
