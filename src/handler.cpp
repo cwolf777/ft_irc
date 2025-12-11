@@ -55,11 +55,20 @@ void Server::handleCap(Client &client, const IrcMsg &msg)
     if (msg.get_params()[0] == "END")
     {
         if (!client.hasNick())
+        {
             sendResponse(client, "451 * :You have not registered\r\n");
+            throw ServerException("451 * :You have not registered\r\n");
+        }
         if (!client.hasUser())
+        {
             sendResponse(client, "451 * :You have not registered\r\n");
+            throw ServerException("451 * :You have not registered\r\n");
+        }
         if (!client.hasPass())
+        {
             sendResponse(client, "451 * :You have not registered, Password required\r\n");
+            throw ServerException("451 * :You have not registered, Password required\r\n");
+        }
         if (client.canRegister())
             sendWelcomeMessage(client);
 
@@ -76,14 +85,18 @@ void Server::handlePass(Client &client, const IrcMsg &msg)
     }
     if (msg.get_params().size() < 1)
     {
-        sendResponse(client, "461 PASS :Not enough parameters");
+        sendResponse(client, "461 PASS :Not enough parameters\r\n");
         return;
     }
     std::string pass = msg.get_params()[0];
 
     if (pass != getPassword())
     {
-        sendResponse(client, "464 :Password incorrect");
+        sendResponse(client, "464 :Password incorrect\r\n");
+
+        // sendResponse(client, "ERROR :Closing Link: user@host [Password Incorrect]\r\n");
+        // disconnectClient(client);
+        // TODO: WELCHE ERROR MESSAGE ???????????
         return;
     }
     client.setHasPass(true);
@@ -95,15 +108,16 @@ void Server::handleNick(Client &client, const IrcMsg &msg)
 {
     if (msg.get_params().size() < 1)
     {
-        sendResponse(client, "431 :No nickname given");
-        return;
+        sendResponse(client, "431 :No nickname given\r\n");
+        throw ServerException("431 :No nickname given");
     }
     std::string newNickname = msg.get_params()[0];
     if (isNickUsed(newNickname))
     {
-        sendResponse(client, "433 :Nickname is already in use");
-        return;
+        sendResponse(client, "433 :Nickname is already in use\r\n");
+        throw ServerException("433 :Nickname is already in use");
     }
+
     try
     {
         client.setNickname(newNickname);
@@ -111,10 +125,10 @@ void Server::handleNick(Client &client, const IrcMsg &msg)
     }
     catch (const std::exception &e)
     {
-        sendResponse(client, "432 :Erroneous nickname");
+        std::cerr << e.what() << std::endl;
+        sendResponse(client, "432 :Erroneous nickname\r\n");
+        throw Server::ServerException("432 :Erroneous nickname");
     }
-    // if (client.canRegister())
-    //     sendWelcomeMessage(client);
 
     // Nachricht an alle Clients ausser beim ersten setzen dbeim einloggen:
     //: NICK <oldNick> <newNick>
@@ -128,8 +142,8 @@ void Server::handleUser(Client &client, const IrcMsg &msg)
     std::vector<std::string> params = msg.get_params();
     if (params.size() < 4)
     {
-        sendResponse(client, "461 USER :Not enough parameters\r\n");
-        return;
+        sendResponse(client, "432 :Erroneous nickname\r\n");
+        throw Server::ServerException("432 :Erroneous nickname");
     }
 
     // if (client.hasUser())
@@ -141,7 +155,4 @@ void Server::handleUser(Client &client, const IrcMsg &msg)
     client.setUsername(params[1]); // TODO: Check for valid Username and real name
     client.setRealname(params[4]);
     client.setHasUser(true);
-
-    // if (client.canRegister())
-    //     sendWelcomeMessage(client);
 }

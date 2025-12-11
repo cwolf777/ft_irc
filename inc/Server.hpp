@@ -41,7 +41,7 @@ public:
         const char *what() const noexcept override { return _message.c_str(); }
     };
 
-    Server(int _port, std::string _password);
+    Server(int _port, const std::string &_password);
     Server(const Server &other);
     Server &operator=(const Server &other);
     ~Server();
@@ -51,13 +51,15 @@ public:
 
     std::string getPassword() const;
     Channel &getChannel(const std::string &name);
-    Client &getClientByNick(const std::string nick);
+    Client &getClientByNick(const std::string &nick);
     const std::string getOperatorPassword() const;
     std::string getOperatorName() const;
 
     void setPassword(std::string pass);
-    bool isNickUsed(const std::string &nick);
-    bool isUsernameUsed(const std::string &username);
+
+    bool isNickUsed(const std::string &nick) const;
+    bool isUsernameUsed(const std::string &username) const;
+
     void sendResponse(const Client &client, const IrcMsg &response) const;
     void sendResponse(const Client &client, const std::string &msg) const;
     void sendResponse(const Client &client, const char *msg) const;
@@ -77,8 +79,9 @@ public:
     void handleKick(Client &client, const IrcMsg &msg);
     void privMsg(Client &client, const IrcMsg &msg);
     void handleNotice(Client &client, const IrcMsg &msg);
+
     void broadcastToChannel(const Client &client, Channel &channel, const std::string &msg);
-    bool channelExists(std::string channelName);
+    bool channelExists(const std::string &name) const;
 
     void connectClient();
     void disconnectClient(Client &client);
