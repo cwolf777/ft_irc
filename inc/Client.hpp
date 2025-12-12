@@ -7,6 +7,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <exception>
+#include <unistd.h>
 
 class Client
 {
@@ -14,28 +15,37 @@ private:
     int _fd;
     std::string _nickname;
     std::string _username;
-    bool _registered;
-    bool _is_op;
-    bool _passwordCorrect;
+    std::string _realName;
+
+    bool _hasNick;
+    bool _hasUser;
+    bool _hasPass;
+    bool _isRegistered;
 
 public:
     Client();
-    Client(int fd, std::string nickname, bool registered, bool is_op, bool passwordCorrect);
-    Client(int fd, std::string nickname, bool is_registerd, bool is_op);
+    Client(int fd);
     Client(const Client &other);
     Client &operator=(const Client &other);
     ~Client();
 
     int getFd() const;
-    bool getRegistered() const;
-    bool getPasswordCorrect() const;
     std::string getNickname() const;
     std::string getUsername() const;
-    bool getOperator() const;
-    void setNickname(std::string nick);
-    void sendMessage(const std::string &msg);
-    void setPasswordCorrect(bool passwordCorrect);
-    void setOperator(bool is_op);
+    std::string getRealname() const;
+    bool getIsRegistered() const;
+    bool hasNick() const;
+    bool hasUser() const;
+    bool hasPass() const;
+
+    void setNickname(const std::string &nick);
+    void setUsername(const std::string &name);
+    void setRealname(const std::string &name);
+    void setHasPass(bool flag);
+    void setHasNick(bool flag);
+    void setHasUser(bool flag);
+
+    bool canRegister();
 };
 
 std::ostream &operator<<(std::ostream &os, const Client &client);

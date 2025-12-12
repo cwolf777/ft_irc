@@ -2,7 +2,14 @@
 
 Channel::Channel() : _name(""), _topic(""), _inviteOnly(false), _topicProtected(false), _password(""), _userlimit(INT32_MAX) {}
 
-Channel::Channel(const Channel &other) : _name(other._name), _topic(other._topic), _memberList(other._memberList), _operatorList(other._operatorList), _inviteOnly(other._inviteOnly), _topicProtected(other._topicProtected), _password(other._password), _userlimit(other._userlimit) {}
+Channel::Channel(const std::string &name, const std::string &password) : _name(name), _topic(""), _password(password)
+{
+    // TODO: password check channel name check topic check
+}
+
+Channel::Channel(const Channel &other) : _name(other._name), _topic(other._topic), _memberList(other._memberList), _operatorList(other._operatorList), _inviteOnly(other._inviteOnly), _topicProtected(other._topicProtected), _password(other._password), _userlimit(other._userlimit)
+{
+}
 
 Channel &Channel::operator=(const Channel &other)
 {
@@ -78,18 +85,18 @@ void Channel::addOperator(Client &client)
     _operatorList.push_back(client);
 }
 
-void Channel::removeOperator(Client &client)
-{
-    for (auto it = _operatorList.begin(); it != _operatorList.end(); ++it)
-    {
-        if (it->getNickname() == client.getNickname())
-        {
-            _operatorList.erase(it);
-            return;
-        }
-        return;
-    }
-}
+// void Channel::removeOperator(Client &client)
+// {
+//     for (auto it = _operatorList.begin(); it != _operatorList.end(); ++it)
+//     {
+//         if (it->getNickname() == client.getNickname())
+//         {
+//             _operatorList.erase(it);
+//             return;
+//         }
+//         return;
+//     }
+// }
 
 bool Channel::isOperator(Client &client)
 {
@@ -166,4 +173,8 @@ void Channel::setTopic(std::string topic)
 bool Channel::isTopicProtected() const
 {
     return _topicProtected;
+}
+const std::vector<Client> &Channel::getMembers() const
+{
+    return _memberList;
 }

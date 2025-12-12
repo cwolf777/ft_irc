@@ -1,27 +1,30 @@
 #include "Server.hpp"
 
-bool Server::channelExists(std::string channelName)
+bool Server::channelExists(const std::string &name) const
 {
-    for (auto it = _channel.begin(); it != _channel.end(); it++)
-    {
-        if (it->getName() == channelName)
-        {
-            return true;
-        }
-    }
-    return false;
+
+    auto it = std::find_if(_channelList.begin(), _channelList.end(),
+                           [name](const Channel &c)
+                           {
+                               return c.getName() == name;
+                           });
+
+    if (it == _channelList.end())
+        return false;
+    return true;
 }
 
 Channel &Server::getChannel(const std::string &name)
 {
-    for (auto it = _channel.begin(); it != _channel.end(); it++)
-    {
-        if (it->getName() == name)
-        {
-            return (*it);
-        }
-    }
-    throw ServerException("Channel does not exist");
+    auto it = std::find_if(_channelList.begin(), _channelList.end(),
+                           [name](const Channel &c)
+                           {
+                               return c.getName() == name;
+                           });
+
+    if (it == _channelList.end())
+        throw ServerException("Channel does not exist");
+    return *it;
 }
 
 std::string Server::getPassword() const
@@ -31,17 +34,20 @@ std::string Server::getPassword() const
 
 void Server::setPassword(std::string pass)
 {
-    _password = pass;
+    _password = pass; // TODO: password validation
 }
 
-bool Server::isNickUsed(const std::string &nick)
+bool Server::isNickUsed(const std::string &nick) const
 {
-    for (auto it = _clients.begin(); it != _clients.end(); it++)
-    {
-        if (it->getNickname() == nick)
-            return true;
-    }
-    return false;
+    auto it = std::find_if(_clients.begin(), _clients.end(),
+                           [nick](const Client &c)
+                           {
+                               return c.getNickname() == nick;
+                           });
+
+    if (it == _clients.end())
+        return false;
+    return true;
 }
 
 const std::string Server::getOperatorPassword() const
@@ -49,14 +55,17 @@ const std::string Server::getOperatorPassword() const
     return _operatorPassword;
 }
 
-bool Server::isUsernameUsed(const std::string &username)
+bool Server::isUsernameUsed(const std::string &username) const
 {
-    for (auto it = _clients.begin(); it != _clients.end(); it++)
-    {
-        if (it->getUsername() == username)
-            return true;
-    }
-    return false;
+    auto it = std::find_if(_clients.begin(), _clients.end(),
+                           [username](const Client &c)
+                           {
+                               return c.getUsername() == username;
+                           });
+
+    if (it == _clients.end())
+        return false;
+    return true;
 }
 
 std::string Server::getOperatorName() const
@@ -64,27 +73,15 @@ std::string Server::getOperatorName() const
     return _operatorName;
 }
 
-Channel &Server::getChannel(const std::string &name)
+Client &Server::getClientByNick(const std::string &nick)
 {
-    for (auto it = _channel.begin(); it != _channel.end(); ++it)
-    {
-        if (it->getName() == name)
-        {
-            return *it;
-        }
-    }
+    auto it = std::find_if(_clients.begin(), _clients.end(),
+                           [nick](const Client &c)
+                           {
+                               return c.getNickname() == nick;
+                           });
 
-    throw ServerException("");
-}
-
-Client &Server::getClientByNick(const std::string nick)
-{
-    for (auto it = _clients.begin(); it != _clients.end(); ++it)
-    {
-        if (it->getNickname() == nick)
-        {
-            return *it;
-        }
-    }
-    throw ServerException("");
+    if (it == _clients.end())
+        throw ServerException("No Client with " + nick + " found");
+    return *it;
 }

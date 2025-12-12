@@ -1,10 +1,10 @@
 NAME = server
 CXX = c++
-CXXFLAGS = -std=c++17 -Wall -Wextra -Werror -I./inc
+CXXFLAGS = -std=c++17 -Wall -Wextra -Werror -I./inc -fsanitize=address
 
 VPATH = ./src
 
-SRCS = main.cpp Server.cpp Client.cpp Channel.cpp IrcMsg.cpp
+SRCS = main.cpp Server.cpp Client.cpp Channel.cpp IrcMsg.cpp handler.cpp ServerUtils.cpp
 OBJS_DIR = objects
 OBJS = $(addprefix $(OBJS_DIR)/, $(SRCS:.cpp=.o))
 

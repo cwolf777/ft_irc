@@ -40,12 +40,14 @@ IrcMsg::~IrcMsg() {};
 
 void IrcMsg::create(const std::string &msg)
 {
-    std::stringstream ss(msg);
-    std::string token;
-    ss >> token;
 
     if (msg.size() < 2 || msg.substr(msg.size() - 2) != "\r\n")
         throw IrcMsgException("Message not terminated properly with \\r\\n");
+
+    _org_msg = msg.substr(0, msg.size() - 2);
+    std::stringstream ss(_org_msg);
+    std::string token;
+    ss >> token;
 
     if (token[0] == ':')
     {
@@ -68,7 +70,6 @@ void IrcMsg::create(const std::string &msg)
             _params.push_back(token.substr(1) + remainder);
             break;
         }
-
         _params.push_back(token);
         middle_params++;
 
