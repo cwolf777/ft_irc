@@ -8,6 +8,7 @@
 #include <sys/socket.h>
 #include <exception>
 #include <unistd.h>
+#include "Channel.hpp"
 
 class Client
 {
@@ -16,15 +17,19 @@ private:
     std::string _nickname;
     std::string _username;
     std::string _realName;
+    std::string _hostname;
 
     bool _hasNick;
     bool _hasUser;
     bool _hasPass;
     bool _isRegistered;
 
+    std::vector<Channel> _channels;
+
 public:
     Client();
     Client(int fd);
+    Client(int fd, const std::string &hostname);
     Client(const Client &other);
     Client &operator=(const Client &other);
     ~Client();
@@ -34,6 +39,8 @@ public:
     std::string getUsername() const;
     std::string getRealname() const;
     bool getIsRegistered() const;
+    std::vector<Channel> getChannels() const;
+    std::string getPrefix() const;
     bool hasNick() const;
     bool hasUser() const;
     bool hasPass() const;

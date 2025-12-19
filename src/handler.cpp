@@ -47,6 +47,7 @@ void Server::handleCap(Client &client, const IrcMsg &msg)
 
     if (msg.get_params().size() < 1)
     {
+
         // TODO: CAP needs params
         return;
     }
@@ -119,13 +120,19 @@ void Server::handleNick(Client &client, const IrcMsg &msg)
     std::string newNickname = msg.get_params()[0];
     if (isNickUsed(newNickname))
     {
-        sendResponse(client, "433 :Nickname is already in use\r\n");
-        throw ServerException("433 :Nickname is already in use");
+        sendResponse(client, "433 * " + newNickname + " :Nickname is already in use\r\n");
+        throw ServerException("433 * " + newNickname + " :Nickname is already in use");
     }
-
     try
     {
         client.setNickname(newNickname);
+        if (client.getIsRegistered())
+        {
+            for (auto c : client.getChannels())
+            {
+                broadcastToChannel(client, c, ":" + client.getPrefix() + " NICK :" + newNickname); // TODO: check if correct
+            }
+        }
         client.setHasNick(true);
     }
     catch (const std::exception &e)

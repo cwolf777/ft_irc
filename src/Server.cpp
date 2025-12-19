@@ -168,13 +168,17 @@ void Server::broadcastToChannel(const Client &client, Channel &channel, const st
 void Server::connectClient(void)
 {
     int client_fd = accept(_poll_fds[0].fd, nullptr, nullptr);
-    if (client_fd >= 0)
-    {
-        std::cout << "new client connected!\n";
-        _poll_fds.push_back(pollfd{client_fd, POLLIN, 0});
-        _clients.push_back(Client(client_fd));
-    }
-    // TODO: handle client_fd < 0
+    if (client_fd < 0)
+        throw ServerException("Error client accept");
+
+    struct sockaddr_in client_addr;
+    socklen_t client_len = sizeof(client_addr);
+
+    char hostname[INET_ADDRSTRLEN];
+    inet_ntop(AF_INET, &client_addr.sin_addr, hostname, INET_ADDRSTRLEN);
+    _poll_fds.push_back(pollfd{client_fd, POLLIN, 0});
+    _clients.push_back(Client(client_fd));
+    std::cout << "new client connected: " << hostname << " (FD: " << client_fd << ")" << std::endl;
 }
 
 void Server::disconnectClient(Client &client)

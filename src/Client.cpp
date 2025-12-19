@@ -37,10 +37,12 @@ Client::Client() : _fd(-1),
                    _nickname(""),
                    _username(""),
                    _realName(""),
+                   _hostname(""),
                    _hasNick(false),
                    _hasUser(false),
                    _hasPass(false),
-                   _isRegistered(false)
+                   _isRegistered(false),
+                   _channels()
 {
 }
 
@@ -48,19 +50,35 @@ Client::Client(int fd) : _fd(fd),
                          _nickname(""),
                          _username(""),
                          _realName(""),
+                         _hostname(""),
                          _hasNick(false),
                          _hasUser(false),
                          _hasPass(false),
-                         _isRegistered(false) {}
+                         _isRegistered(false),
+                         _channels() {}
+
+Client::Client(int fd, const std::string &hostname) : _fd(fd),
+                                                      _nickname(""),
+                                                      _username(""),
+                                                      _realName(""),
+                                                      _hostname(hostname),
+                                                      _hasNick(false),
+                                                      _hasUser(false),
+                                                      _hasPass(false),
+                                                      _isRegistered(false),
+                                                      _channels() {}
 
 Client::Client(const Client &other) : _fd(other._fd),
                                       _nickname(other._nickname),
                                       _username(other._username),
                                       _realName(other._realName),
+                                      _hostname(other._hostname),
                                       _hasNick(other._hasNick),
                                       _hasUser(other._hasUser),
                                       _hasPass(other._hasPass),
-                                      _isRegistered(other._isRegistered)
+                                      _isRegistered(other._isRegistered),
+                                      _channels(other._channels)
+
 {
 }
 
@@ -73,12 +91,13 @@ Client &Client::operator=(const Client &other)
     _nickname = other._nickname;
     _username = other._username;
     _realName = other._realName;
+    _hostname = other._hostname;
 
     _hasNick = other._hasNick;
     _hasUser = other._hasUser;
     _hasPass = other._hasPass;
     _isRegistered = other._isRegistered;
-
+    _channels = other._channels;
     return *this;
 }
 
@@ -111,6 +130,17 @@ std::string Client::getRealname() const
 bool Client::getIsRegistered() const
 {
     return _isRegistered;
+}
+
+std::vector<Channel> Client::getChannels() const
+{
+    return _channels;
+}
+
+std::string Client::getPrefix() const
+{
+    // Format: Nick!User@Host
+    return _nickname + "!" + _username + "@" + _hostname;
 }
 
 bool Client::hasNick() const
