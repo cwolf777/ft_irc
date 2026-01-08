@@ -12,8 +12,8 @@ class Channel
 private:
     std::string _name;
     std::string _topic;
-    std::vector<Client> _members;
-    std::vector<Client> _operators;
+    std::vector<Client *> _members;
+    std::vector<Client *> _operators;
 
     // verscheidene Modes....
     bool _inviteOnly;
@@ -42,11 +42,15 @@ public:
     void clearUserLimit();
     void setLimit(int limit);
     bool isUserLimitSet();
-    void addOperator(const Client &client);
-    void addMember(const Client &client);
     bool isOperator(const Client &client) const;
+
+    void addOperator(Client *client);
+    void addMember(Client *client);
+
     void removeMember(const Client &client);
-    const std::vector<Client> &getMembers() const;
+    const std::vector<Client *> &getMembers() const;
     size_t getMemberCount() const;
     size_t getUserLimit() const;
+
+    void broadcastMessage(const std::string &msg) const;
 };

@@ -14,7 +14,7 @@ Server::Server(const Server &other) : _port(other._port),
                                       _password(other._password),
                                       _server_fd(other._server_fd),
                                       _clients(other._clients),
-                                      _channelMap(other._channelMap),
+                                      _channels(other._channels),
                                       _poll_fds(other._poll_fds)
 {
 }
@@ -30,7 +30,7 @@ Server &Server::operator=(const Server &other)
     _server_fd = other._server_fd;
     _poll_fds = other._poll_fds;
     _clients = other._clients;
-    _channelMap = other._channelMap;
+    _channels = other._channels;
     return *this;
 }
 
@@ -91,16 +91,17 @@ void Server::run()
             {
                 char buffer[512];
                 ssize_t bytes_recvd;
-                bytes_recvd = recv(_poll_fds[i].fd, buffer, sizeof(buffer) - 1, 0);
+                Client &currClient = _clients[_poll_fds[i].fd];
+                bytes_recvd = recv(currClient.getFd(), buffer, sizeof(buffer) - 1, 0);
                 if (bytes_recvd <= 0)
                 {
-                    disconnectClient(_clients[i - 1]);
+                    disconnectClient(currClient);
                     continue;
                 }
                 if (bytes_recvd >= 512)
                 {
                     std::cout << "SPAM!!! Client disconnected!\n";
-                    disconnectClient(_clients[i - 1]);
+                    disconnectClient(currClient);
                     continue;
                 }
                 buffer[bytes_recvd] = '\0';
@@ -115,18 +116,18 @@ void Server::run()
                         IrcMsg request;
                         request.create(msg.substr(0, pos + 2));
                         std::cout << request << std::endl;
-                        handleRequest(_clients[i - 1], request);
+                        handleRequest(currClient, request);
                         msg = msg.substr(pos + 2);
                     }
                 }
                 catch (const IrcMsg::IrcMsgException &e)
                 {
-                    std::cerr << e.what() << std::endl;
+                    std::cerr << e.what() << currClient << std::endl;
                 }
                 catch (const ServerException &e)
                 {
                     std::cerr << e.what() << std::endl;
-                    disconnectClient(_clients[i - 1]);
+                    disconnectClient(currClient);
                 }
             }
         }
@@ -165,13 +166,13 @@ void Server::broadcastToChannel(const Client &client, Channel &channel, const st
 {
     const std::string senderNick = client.getNickname();
 
-    for (const Client &currentClient : channel.getMembers())
+    for (const Client *currentClient : channel.getMembers())
     {
         // Sende NICHT an den ursprünglichen Sender
-        if (currentClient.getNickname() == senderNick)
+        if (currentClient->getNickname() == senderNick)
             continue;
 
-        sendResponse(currentClient, msg);
+        sendResponse(*currentClient, msg);
     }
 }
 
@@ -186,20 +187,16 @@ void Server::connectClient(void)
 
     char hostname[INET_ADDRSTRLEN];
     inet_ntop(AF_INET, &client_addr.sin_addr, hostname, INET_ADDRSTRLEN);
+
+    // add client_fd to _polls_fds and create Client with same fd and add to _clients
     _poll_fds.push_back(pollfd{client_fd, POLLIN, 0});
-    _clients.push_back(Client(client_fd, hostname));
+    _clients[client_fd] = Client(client_fd, hostname);
     std::cout << "new client connected: " << hostname << " (FD: " << client_fd << ")" << std::endl;
 }
 
 void Server::disconnectClient(Client &client)
 {
     int client_fd = client.getFd();
-
-    auto client_it = std::find_if(_clients.begin(), _clients.end(),
-                                  [client_fd](const Client &c)
-                                  {
-                                      return c.getFd() == client_fd;
-                                  });
 
     auto poll_it = std::find_if(_poll_fds.begin(), _poll_fds.end(),
                                 [client_fd](pollfd p)
@@ -212,7 +209,7 @@ void Server::disconnectClient(Client &client)
         throw ServerException("Error: Client not found in the _poll_fds list.");
         std::cerr << "Error: Client not found in the _poll_fds list." << std::endl;
     }
-    if (client_it == _clients.end())
+    if (_clients.erase(client_fd) == 0)
     {
         throw ServerException("Error: Client not found in the _clients list.");
         std::cerr << "Error: Client not found in the _clients list." << std::endl;
@@ -220,7 +217,6 @@ void Server::disconnectClient(Client &client)
 
     std::cout << "Disconnected!" << std::endl;
     std::cout << client << std::endl;
-
+    // TODO: close client_fd here or in Client destructor ??
     _poll_fds.erase(poll_it);
-    _clients.erase(client_it);
 }

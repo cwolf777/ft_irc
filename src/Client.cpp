@@ -43,7 +43,7 @@ Client::Client() : _fd(-1),
                    _hasUser(false),
                    _hasPass(false),
                    _isRegistered(false),
-                   _channels()
+                   _joinedChannels()
 {
 }
 
@@ -56,7 +56,7 @@ Client::Client(int fd) : _fd(fd),
                          _hasUser(false),
                          _hasPass(false),
                          _isRegistered(false),
-                         _channels() {}
+                         _joinedChannels() {}
 
 Client::Client(int fd, const std::string &hostname) : _fd(fd),
                                                       _nickname(""),
@@ -67,7 +67,7 @@ Client::Client(int fd, const std::string &hostname) : _fd(fd),
                                                       _hasUser(false),
                                                       _hasPass(false),
                                                       _isRegistered(false),
-                                                      _channels() {}
+                                                      _joinedChannels() {}
 
 Client::Client(const Client &other) : _fd(other._fd),
                                       _nickname(other._nickname),
@@ -78,7 +78,7 @@ Client::Client(const Client &other) : _fd(other._fd),
                                       _hasUser(other._hasUser),
                                       _hasPass(other._hasPass),
                                       _isRegistered(other._isRegistered),
-                                      _channels(other._channels)
+                                      _joinedChannels(other._joinedChannels)
 
 {
 }
@@ -98,7 +98,7 @@ Client &Client::operator=(const Client &other)
     _hasUser = other._hasUser;
     _hasPass = other._hasPass;
     _isRegistered = other._isRegistered;
-    _channels = other._channels;
+    _joinedChannels = other._joinedChannels;
     return *this;
 }
 
@@ -138,9 +138,9 @@ bool Client::getIsRegistered() const
     return _isRegistered;
 }
 
-std::vector<Channel> Client::getChannels() const
+std::vector<Channel *> &Client::getChannels()
 {
-    return _channels;
+    return _joinedChannels;
 }
 
 std::string Client::getPrefix() const
@@ -164,20 +164,16 @@ bool Client::hasPass() const
     return _hasPass;
 }
 
-void Client::addChannel(const Channel &channel)
+void Client::joinChannel(Channel *channel)
 {
     // if (!channel)
     //     return;
-
-    auto channel_it = std::find_if(_channels.begin(), _channels.end(),
-                                   [channel](const Channel &chan)
-                                   {
-                                       return chan.getName() == channel.getName();
-                                   });
-    if (channel_it == _channels.end())
-        return; // TODO: EXCEPTGION
-
-    _channels.push_back(channel);
+    for (Channel *c : _joinedChannels)
+    {
+        if (c->getName() == channel->getName())
+            return; // TODO: EXCEPTION
+    }
+    _joinedChannels.push_back(channel);
 }
 
 void Client::setNickname(const std::string &nick)
@@ -223,6 +219,10 @@ bool Client::canRegister()
     }
     return false;
 }
+
+// void Client::sendMessage(const std::string &msg) const
+// {
+// }
 
 std::ostream &operator<<(std::ostream &os, const Client &client)
 {

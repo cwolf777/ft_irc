@@ -28,8 +28,8 @@ private:
     int _port;
     std::string _password;
     int _server_fd;
-    std::vector<Client> _clients;
-    std::map<std::string, Channel> _channelMap;
+    std::map<int, Client> _clients;
+    std::map<std::string, Channel> _channels;
     std::vector<pollfd> _poll_fds;
 
 public:
@@ -84,5 +84,6 @@ public:
     void broadcastToChannel(const Client &client, Channel &channel, const std::string &msg);
 
     void connectClient();
+    void addChannel(const Channel &channel);
     void disconnectClient(Client &client);
 };

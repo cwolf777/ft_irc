@@ -27,7 +27,7 @@ private:
     bool _hasPass;
     bool _isRegistered;
 
-    std::vector<Channel> _channels;
+    std::vector<Channel *> _joinedChannels;
 
 public:
     Client();
@@ -43,13 +43,13 @@ public:
     std::string getRealname() const;
     std::string getHostname() const;
     bool getIsRegistered() const;
-    std::vector<Channel> getChannels() const;
+    std::vector<Channel *> &getChannels();
     std::string getPrefix() const;
     bool hasNick() const;
     bool hasUser() const;
     bool hasPass() const;
 
-    void addChannel(const Channel &channel);
+    void joinChannel(Channel *channel);
 
     void setNickname(const std::string &nick);
     void setUsername(const std::string &name);
@@ -59,6 +59,7 @@ public:
     void setHasUser(bool flag);
 
     bool canRegister();
+    // void sendMessage(const std::string &msg) const;
 };
 
 std::ostream &operator<<(std::ostream &os, const Client &client);

@@ -144,9 +144,9 @@ void Server::handleNick(Client &client, const IrcMsg &msg)
             std::string notify = ":" + oldPrefix + " NICK :" + newNickname + "\r\n";
             // An den Client selbst senden
             sendResponse(client, notify);
-            for (auto chan : client.getChannels())
+            for (Channel *chan : client.getChannels())
             {
-                broadcastToChannel(client, chan, notify);
+                broadcastToChannel(client, *chan, notify);
             }
         }
         if (client.canRegister())
@@ -195,10 +195,10 @@ void Server::handleQuit(Client &client, const IrcMsg &msg)
     std::string quitNotify = ":" + client.getPrefix() + " QUIT :Quit: " + reason + "\r\n";
 
     // TODO: REMOVE FROM OPERATOR LIST
-    for (Channel chan : client.getChannels())
+    for (Channel *chan : client.getChannels())
     {
-        broadcastToChannel(client, chan, quitNotify);
-        chan.removeMember(client);
+        broadcastToChannel(client, *chan, quitNotify);
+        chan->removeMember(client);
     }
 
     std::string errDoc = "ERROR :Closing Link: " + client.getHostname() + " (Quit: " + reason + ")\r\n";
@@ -212,18 +212,18 @@ void Server::handleJoin(Client &client, const IrcMsg &msg)
     std::string chanName = msg.get_params()[0];
 
     //  if channel dont exist => create channel
-    if (_channelMap.find(chanName) == _channelMap.end())
+    if (_channels.find(chanName) == _channels.end())
     {
         Channel newChannel(chanName);
-        newChannel.addOperator(client); // first user becomes admin
-        _channelMap[chanName] = newChannel;
+        newChannel.addOperator(&client); // first user becomes admin
+        _channels[chanName] = newChannel;
     }
 
-    Channel chan = _channelMap[chanName];
+    Channel &chan = _channels[chanName];
 
     // add client
-    chan.addMember(client);
-    client.addChannel(chan);
+    chan.addMember(&client);
+    client.joinChannel(&chan);
 
     // send to everyone in channel a message
     std::string joinMsg = ":" + client.getPrefix() + " JOIN :" + chanName + "\r\n";

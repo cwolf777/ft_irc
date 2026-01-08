@@ -42,9 +42,10 @@ std::string Channel::getName() const
 
 bool Channel::isMember(const std::string &name)
 {
-    for (auto it = _members.begin(); it != _members.end(); ++it)
+
+    for (Client *c : _members)
     {
-        if (it->getNickname() == name)
+        if (c->getNickname() == name)
             return true;
     }
     return false;
@@ -80,34 +81,32 @@ void Channel::setLimit(int limit)
     _userlimit = limit;
 }
 
-void Channel::addOperator(const Client &client)
+void Channel::addOperator(Client *oper)
 {
-    for (auto it = _operators.begin(); it != _operators.end(); ++it)
+    for (Client *c : _operators)
     {
-        if (it->getNickname() == client.getNickname())
+        if (c->getNickname() == oper->getNickname())
             return; // TODO: EXCEPTION
     }
-    _operators.push_back(client);
+    _operators.push_back(oper);
 }
 
-void Channel::addMember(const Client &client)
+void Channel::addMember(Client *member)
 {
-    for (auto it = _members.begin(); it != _members.end(); ++it)
+    for (Client *c : _members)
     {
-        if (it->getNickname() == client.getNickname())
+        if (c->getNickname() == member->getNickname())
             return; // TODO: EXCEPTION
     }
-    _members.push_back(client);
+    _operators.push_back(member);
 }
 
 bool Channel::isOperator(const Client &client) const
 {
-    for (auto it = _operators.begin(); it != _operators.end(); ++it)
+    for (Client *c : _operators)
     {
-        if (it->getNickname() == client.getNickname())
-        {
+        if (c->getNickname() == client.getNickname())
             return true;
-        }
     }
     return false;
 }
@@ -124,7 +123,7 @@ void Channel::removeMember(const Client &client)
 {
     for (auto it = _members.begin(); it != _members.end(); ++it)
     {
-        if (it->getNickname() == client.getNickname())
+        if ((*it)->getNickname() == client.getNickname())
         {
             _members.erase(it);
             return;
@@ -152,7 +151,15 @@ size_t Channel::getUserLimit() const
     return _userlimit;
 }
 
-const std::vector<Client> &Channel::getMembers() const
+const std::vector<Client *> &Channel::getMembers() const
 {
     return _members;
 }
+
+// void Channel::broadcastMessage(const std::string &msg) const
+// {
+//     for (auto it = _members.begin(); it != _members.end(); it++)
+//     {
+//         it->sendMessage(msg);
+//     }
+// }
