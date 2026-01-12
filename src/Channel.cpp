@@ -35,11 +35,6 @@ Channel &Channel::operator=(const Channel &other)
 
 Channel::~Channel() {}
 
-std::string Channel::getName() const
-{
-    return _name;
-}
-
 bool Channel::isMember(const std::string &name)
 {
 
@@ -136,14 +131,19 @@ bool Channel::isPasswordSet() const
     return _passwordSet;
 }
 
+std::string Channel::getName() const
+{
+    return _name;
+}
+
+std::string Channel::getTopic() const
+{
+    return _topic;
+}
+
 std::string Channel::getPassword() const
 {
     return _password;
-}
-
-size_t Channel::getMemberCount() const
-{
-    return _members.size();
 }
 
 size_t Channel::getUserLimit() const
@@ -156,6 +156,11 @@ const std::vector<Client *> &Channel::getMembers() const
     return _members;
 }
 
+const std::vector<Client *> &Channel::getOperators() const
+{
+    return _operators;
+}
+
 // void Channel::broadcastMessage(const std::string &msg) const
 // {
 //     for (auto it = _members.begin(); it != _members.end(); it++)
@@ -163,3 +168,40 @@ const std::vector<Client *> &Channel::getMembers() const
 //         it->sendMessage(msg);
 //     }
 // }
+
+std::ostream &operator<<(std::ostream &os, const Channel &channel)
+{
+    os << "========== CHANNEL INFO ==========" << "\n"
+       << "Name:           " << channel.getName() << "\n"
+       << "Topic:          " << (channel.getTopic().empty() ? "(no topic)" : channel.getTopic()) << "\n"
+       << "----------------------------------" << "\n"
+       //    << "Modes:" << "\n"
+       //    << "  Invite-Only:  " << (channel._inviteOnly ? "Yes" : "No") << "\n"
+       //    << "  Password:     " << (channel._passwordSet ? ("Set (" + channel._password + ")") : "No") << "\n"
+       //    << "  User-Limit:   " << (channel._userLimitSet ? std::to_string(channel._userlimit) : "No") << "\n"
+       << "----------------------------------" << "\n"
+       << "Members (" << channel.getMembers().size() << "):" << "\n";
+
+    if (channel.getMembers().empty())
+    {
+        os << "  (none)\n";
+    }
+    else
+    {
+        for (Client *cl : channel.getMembers())
+        {
+            bool isOp = false;
+            for (Client *op : channel.getOperators())
+            {
+                if (op == cl)
+                {
+                    isOp = true;
+                    break;
+                }
+            }
+            os << "  " << (isOp ? "@" : " ") << cl->getNickname() << " (FD: " << cl->getFd() << ")\n";
+        }
+    }
+    os << "==================================";
+    return os;
+}

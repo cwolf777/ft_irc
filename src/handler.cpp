@@ -221,12 +221,15 @@ void Server::handleJoin(Client &client, const IrcMsg &msg)
 
     Channel &chan = _channels[chanName];
 
+    std::cout << chan << std::endl;
     // add client
     chan.addMember(&client);
     client.joinChannel(&chan);
+    std::cout << chan << std::endl;
 
     // send to everyone in channel a message
     std::string joinMsg = ":" + client.getPrefix() + " JOIN :" + chanName + "\r\n";
+    sendResponse(client, joinMsg);
     broadcastToChannel(client, chan, joinMsg);
 
     // TODO: send a list of names in the channel (RPL_NAMREPLY 353)
