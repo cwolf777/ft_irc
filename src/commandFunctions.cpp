@@ -75,14 +75,14 @@ void Server::handleMode(Client &client, const IrcMsg &msg)
                 if (adding)
                 {
                     if (paramIndex >= params.size())
-                        break;
+                        break;kt nur bei Broadcast
                     if(!channel.isPasswordSet())
                     {
                         channel.setPassword(params[paramIndex]);
                     }
                     else
                         //467
-                    paramIndex++;
+                    paramIndex++;kt nur bei Broadcast
                 }
                 else
                     channel.clearPassword();
@@ -144,11 +144,21 @@ void Server::handleTopic(Client &client, const IrcMsg &msg)
     {
         if (channel.getTopic().empty())
         {
-            //331
+            sendResponse(
+            client,
+            ":" + _serverName + " 331 " + client.getNickname() +
+            " " + channel.getName() +
+            " :No topic is set"
+            );
         }
         else
         {
-            //332 TOPIC schicken
+            sendResponse(
+            client,
+            ":" + _serverName + " 332 " + client.getNickname() +
+            " " + channel.getName() +
+            " :" + channel.getTopic()
+            );
         }
         return; 
     }
