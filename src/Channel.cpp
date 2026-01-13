@@ -93,7 +93,7 @@ void Channel::addMember(Client *member)
         if (c->getNickname() == member->getNickname())
             return; // TODO: EXCEPTION
     }
-    _operators.push_back(member);
+    _members.push_back(member);
 }
 
 bool Channel::isOperator(const Client &client) const
