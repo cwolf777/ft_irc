@@ -31,6 +31,8 @@ private:
     std::map<int, Client> _clients;
     std::map<std::string, Channel> _channels;
     std::vector<pollfd> _poll_fds;
+    int _channelLimit;
+    int _clientLimit;
 
 public:
     class ServerException : public std::exception
@@ -54,6 +56,8 @@ public:
     std::string getPassword() const;
     Channel &getChannelByName(const std::string &name);
     std::vector<Channel> getChannelsByTopic(const std::string &topic); // TODO:
+    int getChannelLimit() const;
+    int getClientLimit() const;
 
     void setPassword(std::string pass);
 

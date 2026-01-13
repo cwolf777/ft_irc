@@ -112,7 +112,7 @@ void Server::run()
                     while ((pos = msg.find("\r\n")) != std::string::npos)
                     {
 
-                        std::cout << "Client: " << msg << "\n";
+                        std::cout << "client to server [" << currClient.getFd() << "]{" << currClient.getUsername() << "} : " << msg << "\n";
                         IrcMsg request;
                         request.create(msg.substr(0, pos + 2));
                         handleRequest(currClient, request);
@@ -136,19 +136,19 @@ void Server::run()
 
 void Server::sendResponse(const Client &client, const IrcMsg &response) const
 {
-    std::cout << "Server to client[" << client.getFd() << "]: " << response.get_msg() << std::endl;
+    std::cout << "server to client [" << client.getFd() << "]{" << client.getUsername() << "} : " << response.get_msg() << std::endl;
     send(client.getFd(), response.get_msg().c_str(), response.get_msg().size(), 0);
 }
 
 void Server::sendResponse(const Client &client, const std::string &msg) const
 {
-    std::cout << "Server to client[" << client.getFd() << "]: " << msg << std::endl;
+    std::cout << "server to client [" << client.getFd() << "]{" << client.getUsername() << "} : " << msg << std::endl;
     send(client.getFd(), msg.c_str(), msg.size(), 0);
 }
 
 void Server::sendResponse(const Client &client, const char *msg) const
 {
-    std::cout << "Server to client[" << client.getFd() << "]: " << msg << std::endl;
+    std::cout << "server to client [" << client.getFd() << "]{" << client.getUsername() << "} : " << msg << std::endl;
 
     send(client.getFd(), msg, std::strlen(msg), 0);
 }
@@ -156,7 +156,6 @@ void Server::sendResponse(const Client &client, const char *msg) const
 void Server::sendWelcomeMessage(const Client &client) const
 {
     std::string msg(":" + _serverPrefix + "001 " + client.getNickname() + " :Welcome to the IRC Network " + client.getPrefix() + "\r\n");
-    std::cout << "Server to client[" << client.getFd() << "]: " << msg << std::endl;
     sendResponse(client, msg);
     // sendResponse(client, _serverPrefix + "002 " + client.getNickname() + " :Your host is " + _serverName + ", running version 1.0\r\n");
 }

@@ -31,13 +31,11 @@ public:
     Channel &operator=(const Channel &other);
     ~Channel();
 
-    std::string getName() const;
     bool isMember(const std::string &name);
     void setInviteOnly(bool inviteOnly);
     void setTopicProtected(bool topicProtected);
     void clearPassword();
     void setPassword(const std::string password);
-    std::string getPassword() const;
     bool isPasswordSet() const;
     void clearUserLimit();
     void setLimit(int limit);
@@ -48,8 +46,12 @@ public:
     void addMember(Client *client);
 
     void removeMember(const Client &client);
+
+    std::string getName() const;
+    std::string getTopic() const;
+    std::string getPassword() const;
     const std::vector<Client *> &getMembers() const;
-    size_t getMemberCount() const;
+    const std::vector<Client *> &getOperators() const;
     size_t getUserLimit() const;
 
     void broadcastMessage(const std::string &msg) const;
@@ -58,3 +60,5 @@ public:
     bool isTopicProtected() const;
     void setTopic(std::string newTopic);
 };
+
+std::ostream &operator<<(std::ostream &os, const Channel &channel);
