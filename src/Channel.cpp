@@ -163,3 +163,18 @@ const std::vector<Client *> &Channel::getMembers() const
 //         it->sendMessage(msg);
 //     }
 // }
+
+std::string Channel::getTopic() const
+{
+    return _topic;
+}
+
+bool Channel::isTopicProtected() const
+{
+    return _topicProtected;
+}
+
+void Channel::setTopic(std::string newTopic)
+{
+    _topic = newTopic;
+}
