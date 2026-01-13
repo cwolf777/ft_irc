@@ -12,6 +12,16 @@ std::string Server::getPassword() const
     return _password;
 }
 
+int Server::getChannelLimit() const
+{
+    return _channelLimit;
+}
+
+int Server::getChannelLimit() const
+{
+    return _clientLimit;
+}
+
 void Server::setPassword(std::string pass)
 {
     _password = pass; // TODO: password validation

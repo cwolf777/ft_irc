@@ -209,30 +209,95 @@ void Server::handleQuit(Client &client, const IrcMsg &msg)
 
 void Server::handleJoin(Client &client, const IrcMsg &msg)
 {
-    std::string chanName = msg.get_params()[0];
-
-    //  if channel dont exist => create channel
-    if (_channels.find(chanName) == _channels.end())
+    // ERR_NEEDMOREPARAMS Join command needs channel name as parameter : JOIN #foobar
+    if (msg.get_params().empty())
     {
-        Channel newChannel(chanName);
-        newChannel.addOperator(&client); // first user becomes admin
-        _channels[chanName] = newChannel;
+        std::string reply = ":" + _serverName + " 461 " + client.getNickname() + "JOIN :Not enough parameters\r\n";
+        sendResponse(client, reply);
+        return;
     }
 
-    Channel &chan = _channels[chanName];
+    std::vector<std::string> joinList, passwordList;
+    std::string segment;
 
-    // add client
-    chan.addMember(&client);
-    client.joinChannel(&chan);
+    // splitting the channels from params
+    std::stringstream ss(msg.get_params()[0]);
+    while (std::getline(ss, segment, ','))
+    {
+        if (!segment.empty())
+            joinList.push_back(segment);
+    }
+    segment.clear();
 
-    std::cout << chan << std::endl;
-    // send to everyone in channel a message
-    std::string joinMsg = ":" + client.getPrefix() + " JOIN :" + chanName + "\r\n";
-    broadcastToChannel(client, chan, joinMsg);
+    // splitting the keys from params
+    if (msg.get_params().size() > 1)
+    {
+        std::stringstream ssPass(msg.get_params()[1]);
+        while (std::getline(ssPass, segment, ','))
+        {
+            passwordList.push_back(segment);
+        }
+    }
+    // loop through joinList to join each channel
+    for (int i = 0; i < joinList.size(); i++)
+    {
+        std::string currChannelName = joinList[i];
+        std::string currPass = (i < passwordList.size()) ? passwordList[i] : "";
 
-    // TODO: send a list of names in the channel (RPL_NAMREPLY 353)
-    //  sendResponse(client, ":" + _serverName + " 353 " + client.getNickname() + " = " + chanName + " :" + chan.getMemberListAsString() + "\r\n");
-    //  sendResponse(client, ":" + _serverName + " 366 " + client.getNickname() + " " + chanName + " :End of /NAMES list\r\n");
+        // 403 ERR_NOSUCHCHANNEL Channel currChannelName must start with # or &
+        if (currChannelName.empty() || (currChannelName[0] != '&' && currChannelName[0] != '#'))
+        {
+            std::string reply = ":" + _serverName + " 403 " + client.getNickname() + " " + currChannelName + " :No such channel\r\n";
+            sendResponse(client, reply);
+            continue;
+        }
+
+        //  if channel dont exist => create channel
+        if (_channels.find(currChannelName) == _channels.end())
+        {
+            Channel newChannel(currChannelName);
+            newChannel.addOperator(&client); // first user becomes admin
+            _channels[currChannelName] = newChannel;
+        }
+
+        Channel &chan = _channels[currChannelName];
+
+        // 405 ERR_TOOMANYCHANNELS  check server Channellimit
+        if (client.getChannels().size() >= getChannelLimit())
+        {
+            sendResponse(client, ":" + _serverName + " 405 " + client.getNickname() + " " + currChannelName + " :You have joined too many channels\r\n");
+            return;
+        }
+        // 471 ERR_CHANNELISFULL check if channel is full
+        if (chan.isUserLimitSet() && chan.getMembers().size() >= chan.getUserLimit())
+        {
+            std::string reply = ":" + _serverName + " 471 " + client.getNickname() + " " + currChannelName + " :Cannot join channel (+l)\r\n";
+            sendResponse(client, reply);
+            continue;
+        }
+        // 475 ERR_BADCHANNELKEY check if password is set and correct
+        if (chan.isPasswordSet() && chan.getPassword() != currPass)
+        {
+            std::string reply = ":" + _serverName + " 475 " + client.getNickname() + " " + currChannelName + " :Cannot join channel (+k)\r\n";
+            sendResponse(client, reply);
+            continue;
+        }
+        // add client
+        chan.addMember(&client);
+        client.joinChannel(&chan);
+
+        std::cout << chan << std::endl;
+        // send to everyone in channel a message
+        std::string joinMsg = ":" + client.getPrefix() + " JOIN :" + currChannelName + "\r\n";
+        broadcastToChannel(client, chan, joinMsg);
+
+        // send client the topic of the channel he joined
+        IrcMsg msg("TOPIC " + currChannelName + "\r\n");
+        handleTopic(client, msg);
+        // sendResponse(client, ":" + _serverName + " 353 " + client.getNickname() + " = " + currChannelName + " :" + chan.getMemberListAsString() + "\r\n");
+        // TODO: send a list of names in the channel (RPL_NAMREPLY 353)
+        //  sendResponse(client, ":" + _serverName + " 366 " + client.getNickname() + " " + chanName + " :End of /NAMES list\r\n");
+    }
 }
 
 void Server::handlePing(Client &client, const IrcMsg &msg)
