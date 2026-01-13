@@ -171,11 +171,6 @@ const std::vector<Client *> &Channel::getOperators() const
 //     }
 // }
 
-std::string Channel::getTopic() const
-{
-    return _topic;
-}
-
 bool Channel::isTopicProtected() const
 {
     return _topicProtected;

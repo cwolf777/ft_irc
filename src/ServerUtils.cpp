@@ -12,12 +12,12 @@ std::string Server::getPassword() const
     return _password;
 }
 
-int Server::getChannelLimit() const
+size_t Server::getChannelLimit() const
 {
     return _channelLimit;
 }
 
-int Server::getChannelLimit() const
+size_t Server::getClientLimit() const
 {
     return _clientLimit;
 }

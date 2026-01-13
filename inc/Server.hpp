@@ -56,8 +56,8 @@ public:
     std::string getPassword() const;
     Channel &getChannelByName(const std::string &name);
     std::vector<Channel> getChannelsByTopic(const std::string &topic); // TODO:
-    int getChannelLimit() const;
-    int getClientLimit() const;
+    size_t getChannelLimit() const;
+    size_t getClientLimit() const;
 
     void setPassword(std::string pass);
 

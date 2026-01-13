@@ -56,7 +56,6 @@ public:
 
     void broadcastMessage(const std::string &msg) const;
 
-    std::string getTopic() const;
     bool isTopicProtected() const;
     void setTopic(std::string newTopic);
 };

@@ -1,5 +1,6 @@
 
 #include "Server.hpp"
+#include "commandUtils.hpp"
 
 void Server::handleRequest(Client &client, const IrcMsg &msg)
 {
@@ -20,7 +21,7 @@ void Server::handleRequest(Client &client, const IrcMsg &msg)
         {"QUIT", &Server::handleQuit},
 
         {"JOIN", &Server::handleJoin},
-        // {"TOPIC", &Server::handleTopic},
+        {"TOPIC", &Server::handleTopic},
         // {"KICK", &Server::handleKick},
 
         // {"PRIVMSG", &Server::privMsg},
@@ -239,7 +240,7 @@ void Server::handleJoin(Client &client, const IrcMsg &msg)
         }
     }
     // loop through joinList to join each channel
-    for (int i = 0; i < joinList.size(); i++)
+    for (size_t i = 0; i < joinList.size(); i++)
     {
         std::string currChannelName = joinList[i];
         std::string currPass = (i < passwordList.size()) ? passwordList[i] : "";
