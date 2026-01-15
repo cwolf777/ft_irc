@@ -172,10 +172,16 @@ void Server::handleTopic(Client &client, const IrcMsg &msg)
     {
         newTopic.erase(0, 1);
     }
-
+    std::cout << newTopic << std::endl;
     channel.setTopic(newTopic);
 
     std::string response = ":" + client.getPrefix() + " TOPIC " + channelName + " :" + newTopic + "\r\n";
-
+    std::cout << response << std::endl;
+    std::cout << channel << std::endl;
+    sendResponse(
+        client,
+        ":" + _serverName + " 332 " + client.getNickname() +
+            " " + channel.getName() +
+            " :" + channel.getTopic() + "\r\n");
     broadcastToChannel(client, channel, response);
 }

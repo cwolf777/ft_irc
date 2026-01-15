@@ -180,6 +180,7 @@ void Channel::setTopic(std::string newTopic)
 {
     _topic = newTopic;
 }
+
 std::ostream &operator<<(std::ostream &os, const Channel &channel)
 {
     os << "========== CHANNEL INFO ==========" << "\n"
