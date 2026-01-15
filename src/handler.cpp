@@ -263,6 +263,12 @@ void Server::handleJoin(Client &client, const IrcMsg &msg)
 
         Channel &chan = _channels[currChannelName];
 
+        // 473 ERR_INVITEONLYCHAN client has to be in invited vector
+        if (chan.isInviteOnly() && !chan.isInvited(client))
+        {
+            sendResponse(client, ":" + _serverName + " 473 " + client.getNickname() + " " + currChannelName + " ::Cannot join channel (+i)\r\n");
+            return;
+        }
         // 405 ERR_TOOMANYCHANNELS  check server Channellimit
         if (client.getChannels().size() >= getChannelLimit())
         {

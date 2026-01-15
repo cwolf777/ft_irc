@@ -14,6 +14,7 @@ private:
     std::string _topic;
     std::vector<Client *> _members;
     std::vector<Client *> _operators;
+    std::vector<Client *> _invites;
 
     // verscheidene Modes....
     bool _inviteOnly;
@@ -31,17 +32,6 @@ public:
     Channel &operator=(const Channel &other);
     ~Channel();
 
-    bool isMember(const std::string &name);
-    void setInviteOnly(bool inviteOnly);
-    void setTopicProtected(bool topicProtected);
-    void clearPassword();
-    void setPassword(const std::string password);
-    bool isPasswordSet() const;
-    void clearUserLimit();
-    void setLimit(int limit);
-    bool isUserLimitSet();
-    bool isOperator(const Client &client) const;
-
     void addOperator(Client *client);
     void addMember(Client *client);
 
@@ -54,10 +44,22 @@ public:
     const std::vector<Client *> &getOperators() const;
     size_t getUserLimit() const;
 
-    void broadcastMessage(const std::string &msg) const;
-
+    bool isMember(const std::string &name);
+    bool isOperator(const Client &client) const;
+    bool isPasswordSet() const;
     bool isTopicProtected() const;
+    bool isUserLimitSet();
+    bool isInviteOnly() const;
+    bool isInvited(const Client &client) const;
+
+    void setInviteOnly(bool inviteOnly);
+    void setTopicProtected(bool topicProtected);
+    void setPassword(const std::string password);
     void setTopic(std::string newTopic);
+    void setLimit(int limit);
+
+    void clearPassword();
+    void clearUserLimit();
 };
 
 std::ostream &operator<<(std::ostream &os, const Channel &channel);
