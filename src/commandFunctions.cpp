@@ -112,6 +112,7 @@ void Server::handleMode(Client &client, const IrcMsg &msg)
     for (size_t i = 1; i < params.size(); ++i)
         response += " " + params[i];
 
+    response += "\r\n";
     broadcastToChannel(client, channel, response);
 }
 
@@ -148,7 +149,7 @@ void Server::handleTopic(Client &client, const IrcMsg &msg)
                 client,
                 ":" + _serverName + " 331 " + client.getNickname() +
                     " " + channel.getName() +
-                    " :No topic is set");
+                    " :No topic is set\r\n");
         }
         else
         {
@@ -156,7 +157,7 @@ void Server::handleTopic(Client &client, const IrcMsg &msg)
                 client,
                 ":" + _serverName + " 332 " + client.getNickname() +
                     " " + channel.getName() +
-                    " :" + channel.getTopic());
+                    " :" + channel.getTopic() + "\r\n");
         }
         return;
     }
@@ -174,7 +175,7 @@ void Server::handleTopic(Client &client, const IrcMsg &msg)
 
     channel.setTopic(newTopic);
 
-    std::string response = ":" + client.getPrefix() + " TOPIC " + channelName + " :" + newTopic;
+    std::string response = ":" + client.getPrefix() + " TOPIC " + channelName + " :" + newTopic + "\r\n";
 
     broadcastToChannel(client, channel, response);
 }
