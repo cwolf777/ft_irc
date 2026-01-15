@@ -10,6 +10,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <set>
 #include <poll.h>
 #include <fcntl.h>
 #include <unistd.h>
@@ -55,7 +56,7 @@ public:
 
     std::string getPassword() const;
     Channel &getChannelByName(const std::string &name);
-    std::vector<Channel> getChannelsByTopic(const std::string &topic); // TODO:
+    const Client &getClientByNick(const std::string &nickname) const;
     size_t getChannelLimit() const;
     size_t getClientLimit() const;
 
@@ -81,7 +82,7 @@ public:
     void handleJoin(Client &client, const IrcMsg &msg);
     void handleTopic(Client &client, const IrcMsg &msg);
     void handleKick(Client &client, const IrcMsg &msg);
-    void privMsg(Client &client, const IrcMsg &msg);
+    void handlePrivMsg(Client &client, const IrcMsg &msg);
     void handleNotice(Client &client, const IrcMsg &msg);
     void handlePing(Client &client, const IrcMsg &msg);
 

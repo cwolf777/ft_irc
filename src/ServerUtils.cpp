@@ -7,6 +7,18 @@
 //     return _channelMap[name];
 // }
 
+const Client &Server::getClientByNick(const std::string &nickname) const
+{
+
+    for (const std::pair<const int, Client> &pair : _clients)
+    {
+        if (pair.second.getNickname() == nickname)
+            return pair.second;
+    }
+
+    throw ServerException("Err: Nickname not found");
+}
+
 std::string Server::getPassword() const
 {
     return _password;

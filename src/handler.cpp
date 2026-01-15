@@ -24,7 +24,7 @@ void Server::handleRequest(Client &client, const IrcMsg &msg)
         {"TOPIC", &Server::handleTopic},
         // {"KICK", &Server::handleKick},
 
-        // {"PRIVMSG", &Server::privMsg},
+        {"PRIVMSG", &Server::handlePrivMsg},
         // {"NOTICE", &Server::handleNotice}
         {"PING", &Server::handlePing}};
 
@@ -317,4 +317,76 @@ void Server::handlePing(Client &client, const IrcMsg &msg)
 
     std::string pingParam = msg.get_params()[0];
     sendResponse(client, "PONG :" + pingParam + "\r\n");
+}
+
+// Command: PRIVMSG
+// Parameters: <receiver>{,<receiver>} <text to be sent>
+// receiver should be nick name of client
+void Server::handlePrivMsg(Client &client, const IrcMsg &msg)
+{
+    std::vector<std::string> privMsgParams = msg.get_params();
+
+    // 411 ERR_NORECIPIENT
+    if (privMsgParams.empty())
+    {
+    }
+
+    // 412 ERR_NOTEXTTOSEND
+    std::string text = privMsgParams.back();
+    if (text[0] != ':')
+    {
+        std::string reply = ":" + _serverName + " 412 " + client.getNickname() + " :No text to send\r\n";
+        sendResponse(client, reply);
+    }
+
+    std::set<std::string> nicknames;
+    std::string segment;
+
+    // splitting the channels from params
+    std::stringstream ss(msg.get_params()[0]);
+    while (std::getline(ss, segment, ','))
+    {
+        if (!segment.empty())
+            nicknames.insert(segment);
+    }
+    for (const std::string &currNickname : nicknames)
+    {
+        if ((currNickname[0] == '#' || currNickname[0] == '&'))
+        {
+            // 403 ERR_NOSUCHCHANNEL
+            std::map<std::string, Channel>::iterator it = _channels.find(currNickname);
+            if (it == _channels.end())
+            {
+                std::string reply = ":" + _serverName + " 403 " + client.getNickname() + " " + currNickname + " :No such channel\r\n";
+                sendResponse(client, reply);
+                continue;
+            }
+            std::string reply = ":" + client.getPrefix() + " PRIVMSG " + currNickname + " " + text + "\r\n";
+            broadcastToChannel(client, it->second, reply);
+            continue;
+        }
+        // 401 ERR_NOSUCHNICK
+        if (!isNickUsed(currNickname))
+        {
+            std::string reply = ":" + _serverName + " 401 " + client.getNickname() + " " + currNickname + " :No such nick/channel\r\n";
+            sendResponse(client, reply);
+            continue;
+        }
+
+        try
+        {
+            const Client &receiver = getClientByNick(currNickname);
+
+            std::string reply = ":" + client.getPrefix() + " PRIVMSG " + currNickname + " " + text + "\r\n";
+            sendResponse(receiver, reply);
+            continue;
+        }
+        catch (const std::exception &e)
+        {
+            std::cerr << e.what() << '\n';
+            std::string reply = ":" + _serverName + " 401 " + client.getNickname() + " " + currNickname + " :No such nick/channel\r\n";
+            sendResponse(client, reply);
+            continue;
+        }
+    }
 }

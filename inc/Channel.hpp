@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <set>
 #include <functional>
 
 class Client;
@@ -14,7 +15,7 @@ private:
     std::string _topic;
     std::vector<Client *> _members;
     std::vector<Client *> _operators;
-    std::vector<Client *> _invites;
+    std::set<Client *> _invites;
 
     // verscheidene Modes....
     bool _inviteOnly;
