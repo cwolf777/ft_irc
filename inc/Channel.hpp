@@ -49,7 +49,7 @@ public:
     bool isOperator(const Client &client) const;
     bool isPasswordSet() const;
     bool isTopicProtected() const;
-    bool isUserLimitSet();
+    bool isUserLimitSet() const;
     bool isInviteOnly() const;
     bool isInvited(const Client &client) const;
 

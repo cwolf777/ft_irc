@@ -114,6 +114,7 @@ void Server::handleMode(Client &client, const IrcMsg &msg)
 
     response += "\r\n";
     broadcastToChannel(client, channel, response);
+    sendResponse(client, response);
 }
 
 void Server::handleTopic(Client &client, const IrcMsg &msg)

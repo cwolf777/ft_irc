@@ -1,7 +1,7 @@
 #include "Channel.hpp"
 #include "Client.hpp"
 
-Channel::Channel() : _name(""), _topic(""), _inviteOnly(false), _topicProtected(false), _password(""), _userlimit(INT32_MAX) {}
+Channel::Channel() : _name(""), _topic(""), _inviteOnly(false), _topicProtected(false), _password(""), _userlimit(100) {}
 
 Channel::Channel(const std::string &name) : _name(name), _topic(""), _inviteOnly(false), _topicProtected(false), _password(""), _userlimit(INT32_MAX)
 {
@@ -71,10 +71,12 @@ void Channel::setPassword(const std::string password)
 void Channel::clearUserLimit()
 {
     _userLimitSet = false;
+    _userlimit = 100;
 }
 
 void Channel::setLimit(int limit)
 {
+    _userLimitSet = true;
     _userlimit = limit;
 }
 
@@ -108,12 +110,9 @@ bool Channel::isOperator(const Client &client) const
     return false;
 }
 
-bool Channel::isUserLimitSet()
+bool Channel::isUserLimitSet() const
 {
-    if (_userLimitSet == true)
-        return true;
-    else
-        return false;
+    return _userLimitSet;
 }
 
 void Channel::removeMember(const Client &client)
@@ -194,10 +193,10 @@ std::ostream &operator<<(std::ostream &os, const Channel &channel)
        << "Name:           " << channel.getName() << "\n"
        << "Topic:          " << (channel.getTopic().empty() ? "(no topic)" : channel.getTopic()) << "\n"
        << "----------------------------------" << "\n"
-       //    << "Modes:" << "\n"
-       //    << "  Invite-Only:  " << (channel._inviteOnly ? "Yes" : "No") << "\n"
-       //    << "  Password:     " << (channel._passwordSet ? ("Set (" + channel._password + ")") : "No") << "\n"
-       //    << "  User-Limit:   " << (channel._userLimitSet ? std::to_string(channel._userlimit) : "No") << "\n"
+       << "Modes:" << "\n"
+       << "  Invite-Only:  " << (channel.isInviteOnly() ? "Yes" : "No") << "\n"
+       << "  Password:     " << (channel.isPasswordSet() ? ("Set (" + channel.getPassword() + ")") : "No") << "\n"
+       << "  User-Limit:   " << (channel.isUserLimitSet() ? std::to_string(channel.getUserLimit()) : "No") << "\n"
        << "----------------------------------" << "\n"
        << "Members (" << channel.getMembers().size() << "):" << "\n";
 
