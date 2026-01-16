@@ -117,74 +117,64 @@ void Server::handleMode(Client &client, const IrcMsg &msg)
     sendResponse(client, response);
 }
 
-// void Server::handleTopic(Client &client, const IrcMsg &msg)
-// {
-//     const std::vector<std::string> &params = msg.get_params();
+void Server::handleTopic(Client &client, const IrcMsg &msg)
+{
+    const std::vector<std::string> &params = msg.get_params();
 
-//     if (params.size() < 1)
-//     {
-//         // 461
-//         return;
-//     }
-//     const std::string &channelName = params[0];
+    if (params.size() < 1)
+    {
+        sendResponse(client, ":" + _serverName + " 461 " + client.getNickname() + " TOPIC :Not enough parameters\r\n");
+        return;
+    }
 
-//     if (_channels.find(channelName) == _channels.end())
-//     {
-//         // sendResponse(client, ":" + _serverName + " 403 " + channelName + " :No such channel\r\n");
-//         return; // ERR_NOSUCHCHANNEL
-//     }
-//     Channel &channel = _channels[channelName];
+    const std::string &channelName = params[0];
+    if (_channels.find(channelName) == _channels.end())
+    {
+        sendResponse(client, ":" + _serverName + " 403 " + client.getNickname() + " " + channelName + " :No such channel\r\n");
+        return;
+    }
 
-//     if (!channel.isMember(client.getNickname()))
-//     {
+    Channel &channel = _channels[channelName];
+    if (!channel.isMember(client.getNickname()))
+    {
+        sendResponse(client, ":" + _serverName + " 442 " + client.getNickname() + " " + channelName + " :You're not on that channel\r\n");
+        return;
+    }
 
-//         // 442
-//         return;
-//     }
+    if (params.size() == 1)
+    {
+        if (channel.getTopic().empty())
+        {
+            sendResponse(client, ":" + _serverName + " 331 " + client.getNickname() + " " + channelName + " :No topic is set\r\n");
+        }
+        else
+        {
+            sendResponse(client, ":" + _serverName + " 332 " + client.getNickname() + " " + channelName + " :" + channel.getTopic() + "\r\n");
+            // std::string setter = client.getNickname(); // Oder wer es wirklich gesetzt hat
+            // std::string timestamp = "1705416000";      // Beispiel-Timestamp (oder nutze time(0))
 
-//     if (params.size() == 1)
-//     {
-//         if (channel.getTopic().empty())
-//         {
-//             sendResponse(
-//                 client,
-//                 ":" + _serverName + " 331 " + client.getNickname() +
-//                     " " + channel.getName() +
-//                     " :No topic is set\r\n");
-//         }
-//         else
-//         {
-//             sendResponse(
-//                 client,
-//                 ":" + _serverName + " 332 " + client.getNickname() +
-//                     " " + channel.getName() +
-//                     " :" + channel.getTopic() + "\r\n");
-//         }
-//         return;
-//     }
+            // std::string reply333 = ":" + _serverName + " 333 " + client.getNickname() + " " + channelName + " " + setter + " " + timestamp + "\r\n";
+            // sendResponse(client, reply333);
+        }
+        return;
+    }
 
-//     if (channel.isTopicProtected() && !channel.isOperator(client))
-//     {
-//         // 482 not operator
-//         return;
-//     }
-//     std::string newTopic = params[1];
-//     if (!newTopic.empty() && newTopic[0] == ':')
-//     {
-//         newTopic.erase(0, 1);
-//     }
-//     channel.setTopic(newTopic);
+    if (channel.isTopicProtected() && !channel.isOperator(client))
+    {
+        sendResponse(client, ":" + _serverName + " 482 " + client.getNickname() + " " + channelName + " :You're not channel operator\r\n");
+        return;
+    }
 
-//     std::string response = ":" + client.getPrefix() + " TOPIC " + channelName + " :" + newTopic + "\r\n";
+    std::string newTopic = params[1];
 
-//     sendResponse(
-//         client,
-//         ":" + _serverName + " 332 " + client.getNickname() +
-//             " " + channel.getName() +
-//             " :" + channel.getTopic() + "\r\n");
-//     broadcastToChannel(client, channel, response);
-// }
+    channel.setTopic(newTopic);
+    std::string response = ":" + client.getPrefix() + " TOPIC " + channelName + " :" + newTopic + "\r\n";
 
+    broadcastToChannel(client, channel, response);
+    sendResponse(client, response);
+}
+
+// TODO: komischen abstand bei user fixen
 void Server::handleNames(Client &client, const IrcMsg &msg)
 {
     const std::vector<std::string> &params = msg.get_params();
