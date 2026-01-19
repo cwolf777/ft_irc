@@ -224,3 +224,95 @@ void Server::handleNames(Client &client, const IrcMsg &msg)
 
     sendResponse(client, end);
 }
+
+void Server::handleKick(Client &client, const IrcMsg &msg)
+{
+    //KICK <channel> <user> [comment]
+    if (msg.get_params().size() < 2)
+    {
+        sendResponse(client,
+            ":" + _serverName + " 461 " + client.getNickname() +
+            " KICK :Not enough parameters\r\n");
+        return;
+    }
+
+    const std::string channelName = msg.get_params()[0];
+    const std::string targetNick = msg.get_params()[1];
+
+    std::string comment = client.getNickname();
+
+    if (msg.get_params().size() >= 3)
+    {
+        comment.clear();
+        for (size_t i = 2; i < msg.get_params().size(); i++)
+        {
+            comment += msg.get_params()[i];
+            if (i + 1 < msg.get_params().size())
+                comment += " ";
+        }
+    }
+
+    if (_channels.find(channelName) == _channels.end())
+    {
+        sendResponse(client,
+            ":" + _serverName + " 403 " + client.getNickname() +
+            " " + channelName + " :No such channel\r\n");
+        return;
+    }
+
+    Channel &channel = _channels[channelName];
+
+    if (!channel.isMember(client))
+    {
+        sendResponse(client,
+            ":" + _serverName + " 442 " + client.getNickname() +
+            " " + channelName + " :You're not on that channel\r\n");
+        return;
+    }
+
+    if (!channel.isOperator(client))
+    {
+        sendResponse(client,
+            ":" + _serverName + " 482 " + client.getNickname() +
+            " " + channelName + " :You're not channel operator\r\n");
+        return;
+    }
+
+    Client *target = NULL;
+
+    try
+    {
+        target = &getClientByNick(targetNick);
+    }
+    catch (const ServerException &)
+    {
+        // User existiert nicht ODER nicht gefunden → RFC 441
+        sendResponse(client,
+            ":" + _serverName + " 441 " + client.getNickname() +
+            " " + targetNick + " " + channelName +
+            " :They aren't on that channel\r\n");
+        return;
+    }
+
+    // User existiert, aber ist nicht im Channel
+    if (!channel.isMember(*target))
+    {
+        sendResponse(client,
+            ":" + _serverName + " 441 " + client.getNickname() +
+            " " + targetNick + " " + channelName +
+            " :They aren't on that channel\r\n");
+        return;
+    }
+
+    //was wenn keine comment
+    std::string kickMsg = ":" + client.getPrefix() +
+        " KICK " + channelName + " " + targetNick +
+        " :" + comment + "\r\n";
+    
+    broadcastToChannel(client, channel, kickMsg);
+
+    channel.removeMember(*target);
+
+    if (channel.getMembers().empty())
+        _channels.erase(channelName);
+}
