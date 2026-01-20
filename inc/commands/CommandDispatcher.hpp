@@ -16,6 +16,7 @@
 #include "TopicCommand.hpp"
 #include "UserCommand.hpp"
 #include "WhoCommand.hpp"
+#include "PartCommand.hpp"
 
 // TODO: canonical fertig machen
 class CommandDispatcher

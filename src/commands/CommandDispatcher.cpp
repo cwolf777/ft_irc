@@ -17,6 +17,7 @@ CommandDispatcher::CommandDispatcher()
     registerCommand("TOPIC", std::make_unique<TopicCommand>());
     registerCommand("USER", std::make_unique<UserCommand>());
     registerCommand("WHO", std::make_unique<WhoCommand>());
+    registerCommand("PART", std::make_unique<PartCommand>());
 }
 
 void CommandDispatcher::registerCommand(const std::string &name,

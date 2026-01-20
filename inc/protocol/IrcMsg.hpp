@@ -24,8 +24,9 @@
 #define IRC_PING "PING"
 #define IRC_NAMES "NAMES"
 #define IRC_WHO "WHO"
+#define IRC_PART "PART"
 
-static const std::array<std::string, 16> IRC_COMMANDS = {
+static const std::array<std::string, 17> IRC_COMMANDS = {
     IRC_CAP,
     IRC_PASS,
     IRC_NICK,
@@ -41,7 +42,8 @@ static const std::array<std::string, 16> IRC_COMMANDS = {
     IRC_NOTICE,
     IRC_PING,
     IRC_NAMES,
-    IRC_WHO};
+    IRC_WHO,
+    IRC_PART};
 
 class IrcMsg
 {
