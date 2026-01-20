@@ -317,3 +317,65 @@ void Server::handleKick(Client &client, const IrcMsg &msg)
     if (channel.getMembers().empty())
         _channels.erase(channelName);
 }
+
+void Server::handlePart(Client &client, const IrcMsg &msg)
+{
+    const std::vector<std::string> &params = msg.get_params();
+
+    if (params.size() < 1)
+    {
+        sendResponse(client,
+            ":" + _serverName + " 461 " + client.getNickname() +
+            " PART :Not enough parameters\r\n");
+        return;        
+    }
+
+    std::string reason;
+    if (params.size() > 1)
+    {
+        reason = params[1];
+    }
+
+    std::stringstream ss(params[0]);
+    std::string channelName;
+
+    while (std::getline(ss, channelName, ','))
+    {
+
+        if (_channels.find(channelName) == _channels.end())
+        {
+            sendResponse(client,
+                ":" + _serverName + " 403 " + client.getNickname() +
+                " " + channelName + " :No such channel\r\n");
+            continue;
+                
+        }
+
+        Channel &channel = _channels[channelName];
+
+        if (!channel.isMember(client.getNickname()))
+        {
+            sendResponse(client,
+                ":" + _serverName + " 442 " + client.getNickname() +
+                " " + channelName + " :You're not on that channel\r\n");
+            continue;
+        }
+
+        std::string response =
+            ":" + client.getPrefix() + " PART " + channelName;
+        
+        if (!reason.empty())
+            response += " :" + reason;
+
+        response += "\r\n";
+
+        broadcastToChannel(client, channel, response);
+        sendResponse(client, response);
+
+        channel.removeMember(client);
+
+        if (channel.getMembers().empty())
+            _channels.erase(channelName);
+    }
+
+}

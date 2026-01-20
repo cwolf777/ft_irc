@@ -29,7 +29,8 @@ void Server::handleRequest(Client &client, const IrcMsg &msg)
         // {"NOTICE", &Server::handleNotice}
         {"PING", &Server::handlePing},
         {"NAMES", &Server::handleNames},
-        {"WHO", &Server::handleWho}};
+        {"WHO", &Server::handleWho},
+        {"PART", &Server::handlePart}};
 
     auto it = functions.find(cmd);
     if (it != functions.end())
