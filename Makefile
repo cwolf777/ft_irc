@@ -10,7 +10,7 @@ INCLUDES = \
 
 VPATH = ./src ./src/server ./src/commands ./src/client ./src/channel ./src/protocol
 
-SRCS = main.cpp Server.cpp ServerUtils.cpp  Client.cpp Channel.cpp IrcMsg.cpp  \
+SRCS = main.cpp Server.cpp ServerState.cpp ServerUtils.cpp  Client.cpp Channel.cpp IrcMsg.cpp  \
 	CommandDispatcher.cpp \
 	CapCommand.cpp \
 	PassCommand.cpp \

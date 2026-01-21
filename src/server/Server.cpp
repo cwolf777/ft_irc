@@ -2,20 +2,17 @@
 #include "Server.hpp"
 
 Server::Server(const std::string &severName, int port, const std::string &password) : _serverName(severName),
-                                                                                      _serverPrefix(":" + severName + " "),
                                                                                       _port(port),
                                                                                       _password(password),
-                                                                                      _server_fd(-1),
-                                                                                      _channelLimit(100)
+                                                                                      _server_fd(-1)
 {
     std::fill(_poll_fds.begin(), _poll_fds.end(), pollfd{});
 }
 
-Server::Server(const Server &other) : _port(other._port),
+Server::Server(const Server &other) : _serverName(other._serverName),
+                                      _port(other._port),
                                       _password(other._password),
                                       _server_fd(other._server_fd),
-                                      _clients(other._clients),
-                                      _channels(other._channels),
                                       _poll_fds(other._poll_fds)
 {
 }
@@ -25,13 +22,10 @@ Server &Server::operator=(const Server &other)
     if (this == &other)
         return *this;
     _serverName = other._serverName;
-    _serverPrefix = other._serverPrefix;
     _port = other._port;
     _password = other._password;
     _server_fd = other._server_fd;
     _poll_fds = other._poll_fds;
-    _clients = other._clients;
-    _channels = other._channels;
     return *this;
 }
 
@@ -45,6 +39,11 @@ Server::~Server()
     //      if ( > 0)
     //          close(client.fd);
     //  }
+}
+
+ServerState &Server::getServerState()
+{
+    return _state;
 }
 
 void Server::init(int domain)
@@ -92,7 +91,7 @@ void Server::run()
             {
                 char buffer[512];
                 ssize_t bytes_recvd;
-                Client &currClient = _clients[_poll_fds[i].fd];
+                Client &currClient = _state._clients[_poll_fds[i].fd];
                 bytes_recvd = recv(currClient.getFd(), buffer, sizeof(buffer) - 1, 0);
                 if (bytes_recvd <= 0)
                 {
@@ -135,19 +134,19 @@ void Server::run()
     close(_server_fd);
 }
 
-void Server::sendResponse(const Client &client, const IrcMsg &response) const
-{
-    std::cout << "server to client [" << client.getFd() << "]{" << client.getUsername() << "} : " << response.get_msg() << std::endl;
-    send(client.getFd(), response.get_msg().c_str(), response.get_msg().size(), 0);
-}
+// void Server::sendMsg(const Client &client, const IrcMsg &response) const
+// {
+//     std::cout << "server to client [" << client.getFd() << "]{" << client.getUsername() << "} : " << response.get_msg() << std::endl;
+//     send(client.getFd(), response.get_msg().c_str(), response.get_msg().size(), 0);
+// }
 
-void Server::sendResponse(const Client &client, const std::string &msg) const
+void Server::sendMsg(const Client &client, const std::string &msg) const
 {
     std::cout << "server to client [" << client.getFd() << "]{" << client.getUsername() << "} : " << msg << std::endl;
     send(client.getFd(), msg.c_str(), msg.size(), 0);
 }
 
-void Server::sendResponse(const Client &client, const char *msg) const
+void Server::sendMsg(const Client &client, const char *msg) const
 {
     std::cout << "server to client [" << client.getFd() << "]{" << client.getUsername() << "} : " << msg << std::endl;
 
@@ -156,12 +155,12 @@ void Server::sendResponse(const Client &client, const char *msg) const
 
 void Server::sendWelcomeMessage(const Client &client) const
 {
-    std::string msg(":" + _serverPrefix + "001 " + client.getNickname() + " :Welcome to the IRC Network " + client.getPrefix() + "\r\n");
-    sendResponse(client, msg);
-    // sendResponse(client, _serverPrefix + "002 " + client.getNickname() + " :Your host is " + _serverName + ", running version 1.0\r\n");
+    std::string msg(":" + _serverName + " 001 " + client.getNickname() + " :Welcome to the IRC Network " + client.getPrefix() + "\r\n");
+    sendMsg(client, msg);
+    // sendMsg(client, _serverPrefix + "002 " + client.getNickname() + " :Your host is " + _serverName + ", running version 1.0\r\n");
 }
 
-void Server::broadcastToChannel(const Client &client, Channel &channel, const std::string &msg)
+void Server::broadcastToChannel(const Client &client, const Channel &channel, const std::string &msg)
 {
     const std::string senderNick = client.getNickname();
 
@@ -171,7 +170,7 @@ void Server::broadcastToChannel(const Client &client, Channel &channel, const st
         if (currentClient->getNickname() == senderNick)
             continue;
 
-        sendResponse(*currentClient, msg);
+        sendMsg(*currentClient, msg);
     }
 }
 
@@ -189,7 +188,7 @@ void Server::connectClient(void)
 
     // add client_fd to _polls_fds and create Client with same fd and add to _clients
     _poll_fds.push_back(pollfd{client_fd, POLLIN, 0});
-    _clients[client_fd] = Client(client_fd, hostname);
+    _state._clients[client_fd] = Client(client_fd, hostname);
     std::cout << "new client connected: " << hostname << " (FD: " << client_fd << ")" << std::endl;
 }
 
@@ -208,7 +207,7 @@ void Server::disconnectClient(Client &client)
         throw ServerException("Error: Client not found in the _poll_fds list.");
         std::cerr << "Error: Client not found in the _poll_fds list." << std::endl;
     }
-    if (_clients.erase(client_fd) == 0)
+    if (_state._clients.erase(client_fd) == 0)
     {
         throw ServerException("Error: Client not found in the _clients list.");
         std::cerr << "Error: Client not found in the _clients list." << std::endl;

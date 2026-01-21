@@ -2,9 +2,7 @@
 #include "Server.hpp"
 #include "Channel.hpp"
 
-void ModeCommand::execute(Client &client,
-                          Server &server,
-                          const IrcMsg &msg)
+void ModeCommand::execute(Client &client, Server &server, const IrcMsg &msg)
 {
     // MODE #channel <modestring> [modeparams...] bswp: MODE #channelName +it
     // msg.get_cmd()      == "MODE"
@@ -16,27 +14,30 @@ void ModeCommand::execute(Client &client,
 
     if (params.size() < 2)
     {
-        // sendResponse(client, ":" + _serverName + " 461 MODE :Not enough parameters\r\n");
+        std::string reply = ":" + server.getServerName() + " 461 " + client.getNickname() + " MODE :Not enough parameters\r\n";
+        server.sendMsg(client, reply);
         return;
     }
 
     // 2. Channel existiert?
 
+    ServerState &state = server.getServerState();
     const std::string &channelName = params[0];
 
-    if (server.getChannels().find(channelName) == server.getChannels().end())
+    Channel *currChannel = state.getChannel(channelName);
+    if (!currChannel)
     {
-        // sendResponse(client, ":" + _serverName + " 403 " + channelName + " :No such channel\r\n");
+        std::string reply = ":" + server.getServerName() + " 403 " + client.getNickname() + " " + channelName + " :No such channel\r\n";
+        server.sendMsg(client, reply);
         return; // ERR_NOSUCHCHANNEL
     }
 
-    Channel &channel = server.getChannels()[channelName];
-
     // 3. Client ist Operator?
 
-    if (!channel.isOperator(client))
+    if (!currChannel->isOperator(client))
     {
-        // sendResponse(client, ":" + _serverName + " 482 " + channel.getName() + " :You're not channel operator\r\n");
+        std::string reply = ":" + server.getServerName() + " 483 " + client.getNickname() + " " + channelName + " :You're not channel operator\r\n";
+        server.sendMsg(client, reply);
         return; // ERR_CHANOPRIVSNEEDED
     }
 
@@ -65,11 +66,11 @@ void ModeCommand::execute(Client &client,
         switch (c)
         {
         case 'i':
-            channel.setInviteOnly(adding);
+            currChannel->setInviteOnly(adding);
             break;
 
         case 't':
-            channel.setTopicProtected(adding);
+            currChannel->setTopicProtected(adding);
             break;
 
         case 'k':
@@ -77,16 +78,16 @@ void ModeCommand::execute(Client &client,
             {
                 if (paramIndex >= params.size())
                     break;
-                if (!channel.isPasswordSet())
+                if (!currChannel->isPasswordSet())
                 {
-                    channel.setPassword(params[paramIndex]);
+                    currChannel->setPassword(params[paramIndex]);
                 }
                 else
                     // 467
                     paramIndex++;
             }
             else
-                channel.clearPassword();
+                currChannel->clearPassword();
             break;
 
         case 'l':
@@ -97,24 +98,25 @@ void ModeCommand::execute(Client &client,
                 int limit = std::atoi(params[paramIndex++].c_str());
                 if (limit < 0)
                     limit = 0;
-                if (limit > 100)
+                if (limit > 100) // TODO: change hardcoded value
                     limit = 100;
-                channel.setLimit(limit);
+                currChannel->setLimit(limit);
             }
             else
-                channel.clearUserLimit();
+                currChannel->clearUserLimit();
             break;
         default:
-            // sendResponse(client, ":" + _serverName + " 472 " + c + " :is unknown mode char to me\r\n");
+            std::string reply = ":" + server.getServerName() + " 472 " + client.getNickname() + " " + c + "  :is unknown mode char to me\r\n";
+            server.sendMsg(client, reply);
             break;
         }
     }
     // MODE ANEDERUNGEN BROADCASTEN: IRC KONFORM: :nick!user@host MODE #chan +kl geheim 10
-    std::string response = ":" + client.getPrefix() + " MODE " + channelName;
+    std::string reply = ":" + client.getPrefix() + " MODE " + channelName;
     for (size_t i = 1; i < params.size(); ++i)
-        response += " " + params[i];
+        reply += " " + params[i];
+    reply += "\r\n";
 
-    response += "\r\n";
-    server.broadcastToChannel(client, channel, response);
-    server.sendResponse(client, response);
+    server.broadcastToChannel(client, *currChannel, reply);
+    server.sendMsg(client, reply);
 }

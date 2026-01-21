@@ -2,31 +2,28 @@
 #include "Server.hpp"
 #include "Channel.hpp"
 
-void NamesCommand::execute(Client &client,
-                           Server &server,
-                           const IrcMsg &msg)
+void NamesCommand::execute(Client &client, Server &server, const IrcMsg &msg)
 {
     const std::vector<std::string> &params = msg.get_params();
     if (params.empty())
         return;
 
+    ServerState &state = server.getServerState();
     const std::string &channelName = params[0];
 
-    if (server.getChannels().find(channelName) == server.getChannels().end())
+    Channel *currChannel = state.getChannel(channelName);
+
+    if (!currChannel)
     {
-        // Optional: ERR_NOSUCHCHANNEL
-        // sendResponse(client, ":" + _serverName + " 403 " + client.getNickname() + " " + channelName + " :No such channel\r\n");
-        return;
+        std::string reply = ":" + server.getServerName() + " 403 " + client.getNickname() + " " + channelName + " :No such channel\r\n";
+        server.sendMsg(client, reply);
+        return; // ERR_NOSUCHCHANNEL
     }
 
-    Channel &channel = server.getChannels()[channelName];
-
     std::string names;
-    for (auto it = channel.getMembers().begin(); it != channel.getMembers().end(); ++it)
+    for (const Client *member : currChannel->getMembers())
     {
-        const Client *member = *it;
-
-        if (channel.isOperator(*member))
+        if (currChannel->isOperator(*member))
             names += "@";
         // else if (channel.hasVoice(*member))
         //     names += "+";
@@ -36,20 +33,10 @@ void NamesCommand::execute(Client &client,
     }
 
     // 3. 353 RPL_NAMREPLY senden
-    std::string reply =
-        ":" + server.getServerName() +
-        " 353 " + client.getNickname() +
-        " = " + channelName +
-        " :" + names + "\r\n";
-
-    server.sendResponse(client, reply);
+    std::string reply = ":" + server.getServerName() + " 353 " + client.getNickname() + " = " + channelName + " :" + names + "\r\n";
+    server.sendMsg(client, reply);
 
     // 4. 366 RPL_ENDOFNAMES senden
-    std::string end =
-        ":" + server.getServerName() +
-        " 366 " + client.getNickname() +
-        " " + channelName +
-        " :End of /NAMES list.\r\n";
-
-    server.sendResponse(client, end);
+    std::string end = ":" + server.getServerName() + " 366 " + client.getNickname() + " " + channelName + " :End of /NAMES list.\r\n";
+    server.sendMsg(client, end);
 }

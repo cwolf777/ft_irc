@@ -2,23 +2,20 @@
 #include "Server.hpp"
 #include "Channel.hpp"
 
-void QuitCommand::execute(Client &client,
-                          Server &server,
-                          const IrcMsg &msg)
+void QuitCommand::execute(Client &client, Server &server, const IrcMsg &msg)
 {
     std::string reason = msg.get_params().empty() ? client.getNickname() : msg.get_params()[0];
 
-    std::string quitNotify = ":" + client.getPrefix() + " QUIT :Quit: " + reason + "\r\n";
+    std::string reply = ":" + client.getPrefix() + " QUIT :Quit: " + reason + "\r\n";
 
     // TODO: REMOVE FROM OPERATOR LIST
     for (Channel *chan : client.getChannels())
     {
-        server.broadcastToChannel(client, *chan, quitNotify);
+        server.broadcastToChannel(client, *chan, reply);
         chan->removeMember(client);
     }
 
-    std::string errDoc = "ERROR :Closing Link: " + client.getHostname() + " (Quit: " + reason + ")\r\n";
-    server.sendResponse(client, errDoc);
-
+    reply = "ERROR :Closing Link: " + client.getHostname() + " (Quit: " + reason + ")\r\n";
+    server.sendMsg(client, reply);
     server.disconnectClient(client);
 }

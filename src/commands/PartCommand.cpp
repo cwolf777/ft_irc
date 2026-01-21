@@ -2,64 +2,54 @@
 #include "Server.hpp"
 #include "Channel.hpp"
 
-void PartCommand::execute(Client &client,
-                          Server &server,
-                          const IrcMsg &msg)
+void PartCommand::execute(Client &client, Server &server, const IrcMsg &msg)
 {
     const std::vector<std::string> &params = msg.get_params();
 
     if (params.size() < 1)
     {
-        server.sendResponse(client,
-                            ":" + server.getServerName() + " 461 " + client.getNickname() +
-                                " PART :Not enough parameters\r\n");
+        std::string reply = ":" + server.getServerName() + " 461 " + client.getNickname() + " PART :Not enough parameters\r\n";
+        server.sendMsg(client, reply);
         return;
     }
-
-    std::string reason;
+    ServerState &state = server.getServerState();
+    std::string reason = "";
     if (params.size() > 1)
-    {
         reason = params[1];
-    }
 
     std::stringstream ss(params[0]);
-    std::string channelName;
+    std::string currChannelName;
 
-    while (std::getline(ss, channelName, ','))
+    while (std::getline(ss, currChannelName, ','))
     {
 
-        if (server.getChannels().find(channelName) == server.getChannels().end())
+        Channel *currChannel = state.getChannel(currChannelName);
+        if (!currChannel)
         {
-            server.sendResponse(client,
-                                ":" + server.getServerName() + " 403 " + client.getNickname() +
-                                    " " + channelName + " :No such channel\r\n");
+            std::string reply = ":" + server.getServerName() + " 403 " + client.getNickname() + " " + currChannelName + " :No such channel\r\n";
+            server.sendMsg(client, reply);
             continue;
         }
 
-        Channel &channel = server.getChannels()[channelName];
-
-        if (!channel.isMember(client.getNickname()))
+        if (!currChannel->isMember(client.getNickname()))
         {
-            server.sendResponse(client,
-                                ":" + server.getServerName() + " 442 " + client.getNickname() +
-                                    " " + channelName + " :You're not on that channel\r\n");
+            std::string reply = ":" + server.getServerName() + " 442 " + client.getNickname() + " " + currChannelName + " :You're not on that channel\r\n";
+            server.sendMsg(client, reply);
             continue;
         }
 
-        std::string response =
-            ":" + client.getPrefix() + " PART " + channelName;
+        std::string reply = ":" + client.getPrefix() + " PART " + currChannelName;
 
         if (!reason.empty())
-            response += " :" + reason;
+            reply += " :" + reason;
 
-        response += "\r\n";
+        reply += "\r\n";
+        server.broadcastToChannel(client, *currChannel, reply);
+        server.sendMsg(client, reply);
 
-        server.broadcastToChannel(client, channel, response);
-        server.sendResponse(client, response);
+        currChannel->removeMember(client);
 
-        channel.removeMember(client);
-
-        if (channel.getMembers().empty())
-            server.getChannels().erase(channelName);
+        if (currChannel->getMembers().empty())
+            state.removeChannel(*currChannel);
     }
 }

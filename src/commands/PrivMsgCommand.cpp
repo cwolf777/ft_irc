@@ -2,9 +2,7 @@
 #include "Server.hpp"
 #include "Channel.hpp"
 
-void PrivMsgCommand::execute(Client &client,
-                             Server &server,
-                             const IrcMsg &msg)
+void PrivMsgCommand::execute(Client &client, Server &server, const IrcMsg &msg)
 {
     // Command: PRIVMSG
     // Parameters: <receiver>{,<receiver>} <text to be sent>
@@ -21,10 +19,11 @@ void PrivMsgCommand::execute(Client &client,
     if (privMsgParams.size() == 1)
     {
         std::string reply = ":" + server.getServerName() + " 412 " + client.getNickname() + " :No text to send\r\n";
-        server.sendResponse(client, reply);
+        server.sendMsg(client, reply);
         return;
     }
 
+    ServerState &state = server.getServerState();
     std::string text = privMsgParams.back();
     std::set<std::string> targets;
     std::string segment;
@@ -41,45 +40,35 @@ void PrivMsgCommand::execute(Client &client,
         if ((currTarget[0] == '#' || currTarget[0] == '&'))
         {
             // 403 ERR_NOSUCHCHANNEL
-            std::map<std::string, Channel>::iterator it = server.getChannels().find(currTarget);
-            if (it == server.getChannels().end())
+            const Channel *currChannel = state.getChannel(currTarget);
+            if (!currChannel)
             {
                 std::string reply = ":" + server.getServerName() + " 403 " + client.getNickname() + " " + currTarget + " :No such channel\r\n";
-                server.sendResponse(client, reply);
+                server.sendMsg(client, reply);
                 continue;
             }
             // 404 ERR_CANNOTSENDTOCHAN client has to be member
-            if (!it->second.isMember(client.getNickname()))
+            if (!currChannel->isMember(client.getNickname()))
             {
                 std::string reply = ":" + server.getServerName() + " 404 " + client.getNickname() + " " + currTarget + " :Cannot send to channel\r\n";
-                server.sendResponse(client, reply);
+                server.sendMsg(client, reply);
                 continue;
             }
             std::string reply = ":" + client.getPrefix() + " PRIVMSG " + currTarget + " " + text + "\r\n";
-            server.broadcastToChannel(client, it->second, reply);
+            server.broadcastToChannel(client, *currChannel, reply);
             continue;
         }
+        const Client *receiver = state.getClientByNick(currTarget);
         // 401 ERR_NOSUCHNICK
-        if (!server.isNickUsed(currTarget))
+        if (!receiver)
         {
             std::string reply = ":" + server.getServerName() + " 401 " + client.getNickname() + " " + currTarget + " :No such nick/channel\r\n";
-            server.sendResponse(client, reply);
+            server.sendMsg(client, reply);
             continue;
         }
 
-        try
-        {
-            const Client &receiver = server.getClientByNick(currTarget);
-            std::string reply = ":" + client.getPrefix() + " PRIVMSG " + currTarget + " " + text + "\r\n";
-            server.sendResponse(receiver, reply);
-            continue;
-        }
-        catch (const std::exception &e)
-        {
-            std::cerr << e.what() << '\n';
-            std::string reply = ":" + server.getServerName() + " 401 " + client.getNickname() + " " + currTarget + " :No such nick/channel\r\n";
-            server.sendResponse(client, reply);
-            continue;
-        }
+        // final send msg to receiver client
+        std::string reply = ":" + client.getPrefix() + " PRIVMSG " + currTarget + " " + text + "\r\n";
+        server.sendMsg(*receiver, reply);
     }
 }

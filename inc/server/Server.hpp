@@ -21,21 +21,18 @@
 #include <netinet/in.h>
 #include <exception>
 #include <algorithm>
+#include "ServerState.hpp"
 
 class Server
 {
 private:
     std::string _serverName;
-    std::string _serverPrefix;
     int _port;
     std::string _password;
     int _server_fd;
-    std::map<int, Client> _clients;
-    std::map<std::string, Channel> _channels;
     std::vector<pollfd> _poll_fds;
-    int _channelLimit;
-    int _clientLimit;
     CommandDispatcher _commands;
+    ServerState _state;
 
 public:
     class ServerException : public std::exception
@@ -48,7 +45,7 @@ public:
         const char *what() const noexcept override { return _message.c_str(); }
     };
 
-    Server(const std::string &serverName, int _port, const std::string &_password);
+    Server(const std::string &serverName, int port, const std::string &password);
     Server(const Server &other);
     Server &operator=(const Server &other);
     ~Server();
@@ -56,29 +53,19 @@ public:
     void init(int domain);
     void run();
 
+    ServerState &getServerState();
     std::string getServerName() const;
     std::string getPassword() const;
-    Channel &getChannelByName(const std::string &name);
-    std::map<std::string, Channel> &getChannels();
-    Client &getClientByNick(const std::string &nickname);
-    size_t getChannelLimit() const;
-    size_t getClientLimit() const;
 
-    void setPassword(std::string pass);
-
-    bool isNickUsed(const std::string &nick) const;
-    bool isUsernameUsed(const std::string &username) const;
-
-    void sendResponse(const Client &client, const IrcMsg &response) const;
-    void sendResponse(const Client &client, const std::string &msg) const;
-    void sendResponse(const Client &client, const char *msg) const;
+    // void sendMsg(const Client &client, const IrcMsg &response) const;
+    void sendMsg(const Client &client, const std::string &msg) const;
+    void sendMsg(const Client &client, const char *msg) const;
     void sendWelcomeMessage(const Client &client) const;
 
     void handleRequest(Client &client, const IrcMsg &msg);
 
-    void broadcastToChannel(const Client &client, Channel &channel, const std::string &msg);
+    void broadcastToChannel(const Client &client, const Channel &channel, const std::string &msg);
 
     void connectClient();
-    void addChannel(const Channel &channel);
     void disconnectClient(Client &client);
 };
