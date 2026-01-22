@@ -1,7 +1,7 @@
 #pragma once
 #include <map>
 #include <memory>
-#include "Command.hpp"
+#include "ICommand.hpp"
 #include "CapCommand.hpp"
 #include "InviteCommand.hpp"
 #include "JoinCommand.hpp"
@@ -22,12 +22,12 @@
 class CommandDispatcher
 {
 private:
-    std::map<std::string, std::unique_ptr<Command>> _commands;
+    std::map<std::string, std::unique_ptr<ICommand>> _commands;
 
 public:
     CommandDispatcher();
     void registerCommand(const std::string &name,
-                         std::unique_ptr<Command> cmd);
+                         std::unique_ptr<ICommand> cmd);
 
     void dispatch(Client &client,
                   Server &server,

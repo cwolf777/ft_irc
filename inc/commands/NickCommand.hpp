@@ -1,8 +1,8 @@
 
 #pragma once
-#include "Command.hpp"
+#include "ICommand.hpp"
 
-class NickCommand : public Command
+class NickCommand : public ICommand
 {
 public:
     void execute(Client &client, Server &server, const IrcMsg &msg) override;

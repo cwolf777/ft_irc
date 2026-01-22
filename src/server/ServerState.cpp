@@ -26,10 +26,19 @@ ServerState::~ServerState() {}
 
 Client *ServerState::getClientByNick(const std::string &nick)
 {
-
     for (std::pair<const int, Client> &pair : _clients)
     {
         if (pair.second.getNickname() == nick)
+            return &pair.second;
+    }
+
+    return nullptr;
+}
+Client *ServerState::getClientByFd(int fd)
+{
+    for (std::pair<const int, Client> &pair : _clients)
+    {
+        if (pair.second.getFd() == fd)
             return &pair.second;
     }
 
@@ -59,7 +68,7 @@ bool ServerState::isUsernameUsed(const std::string &username) const
 // TODO: soll ich logik schon einbauen und checken auf duplicates
 void ServerState::addClient(Client &client)
 {
-    _clients[client.getFd()] = client;
+    _clients.insert({client.getFd(), client});
 }
 
 void ServerState::removeClient(const Client &client)

@@ -21,7 +21,7 @@ CommandDispatcher::CommandDispatcher()
 }
 
 void CommandDispatcher::registerCommand(const std::string &name,
-                                        std::unique_ptr<Command> cmd)
+                                        std::unique_ptr<ICommand> cmd)
 {
     _commands[name] = std::move(cmd);
 }

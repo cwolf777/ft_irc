@@ -20,7 +20,7 @@ void PassCommand::execute(Client &client, Server &server, const IrcMsg &msg)
     {
         server.sendMsg(client, ":" + server.getServerName() + "464 * :Password incorrect\r\n");
         server.sendMsg(client, "ERROR :Closing Link: [Access denied by password]\r\n");
-        throw Server::ServerException("Auth failed");
+        // throw ServerException("Auth failed"); /TODO:
         return;
     }
     client.setHasPass(true);

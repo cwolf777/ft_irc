@@ -11,7 +11,7 @@ void UserCommand::execute(Client &client, Server &server, const IrcMsg &msg)
     if (params.size() < 4)
     {
         server.sendMsg(client, "432 :Erroneous nickname\r\n");
-        throw Server::ServerException("432 :Erroneous nickname"); // TODO: really exception ??
+        throw ServerException("432 :Erroneous nickname"); // TODO: really exception ??
     }
 
     // TODO: Check for already existing username

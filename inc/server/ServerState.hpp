@@ -19,6 +19,7 @@ public:
 
     // Clients
     Client *getClientByNick(const std::string &nick);
+    Client *getClientByFd(int fd);
     bool isNickUsed(const std::string &nick) const;
     bool isUsernameUsed(const std::string &user) const;
     void addClient(Client &client);

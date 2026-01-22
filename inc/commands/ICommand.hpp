@@ -4,9 +4,9 @@
 
 class Server;
 
-class Command
+class ICommand
 {
 public:
-    virtual ~Command() {}
+    virtual ~ICommand() {}
     virtual void execute(Client &client, Server &server, const IrcMsg &msg) = 0;
 };

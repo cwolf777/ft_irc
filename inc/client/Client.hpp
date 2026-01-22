@@ -35,6 +35,8 @@ public:
     Client(int fd, const std::string &hostname);
     Client(const Client &other);
     Client &operator=(const Client &other);
+    // Client(Client &&other) noexcept;
+    // Client &operator=(Client &&other) noexcept;
     ~Client();
 
     int getFd() const;

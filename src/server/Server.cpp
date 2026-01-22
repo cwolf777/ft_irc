@@ -1,19 +1,21 @@
 
 #include "Server.hpp"
 
-Server::Server(const std::string &severName, int port, const std::string &password) : _serverName(severName),
-                                                                                      _port(port),
-                                                                                      _password(password),
-                                                                                      _server_fd(-1)
+Server::Server(const std::string &severName, int port, const std::string &password)
+    : _serverName(severName),
+      _port(port),
+      _password(password),
+      _server_fd(-1)
 {
-    std::fill(_poll_fds.begin(), _poll_fds.end(), pollfd{});
+    std::fill(_polls.begin(), _polls.end(), pollfd{});
 }
 
-Server::Server(const Server &other) : _serverName(other._serverName),
-                                      _port(other._port),
-                                      _password(other._password),
-                                      _server_fd(other._server_fd),
-                                      _poll_fds(other._poll_fds)
+Server::Server(const Server &other)
+    : _serverName(other._serverName),
+      _port(other._port),
+      _password(other._password),
+      _server_fd(other._server_fd),
+      _polls(other._polls)
 {
 }
 
@@ -25,7 +27,7 @@ Server &Server::operator=(const Server &other)
     _port = other._port;
     _password = other._password;
     _server_fd = other._server_fd;
-    _poll_fds = other._poll_fds;
+    _polls = other._polls;
     return *this;
 }
 
@@ -33,12 +35,16 @@ Server::~Server()
 {
     if (_server_fd > 0)
         close(_server_fd);
-    // TODO: Where do i close the fd from client
-    //  for (Client c : _clients)
-    //  {
-    //      if ( > 0)
-    //          close(client.fd);
-    //  }
+}
+
+std::string Server::getServerName() const
+{
+    return _serverName;
+}
+
+std::string Server::getPassword() const
+{
+    return _password;
 }
 
 ServerState &Server::getServerState()
@@ -71,155 +77,4 @@ void Server::init(int domain)
     int flags = fcntl(_server_fd, F_GETFL, 0);
     fcntl(_server_fd, F_SETFL, flags | O_NONBLOCK);
     std::cout << "server runnning on port " << _port << "...\n";
-}
-
-void Server::run()
-{
-    _poll_fds.push_back({_server_fd, POLLIN, 0});
-    while (true)
-    {
-        // setting poll for clients
-        poll(_poll_fds.data(), _poll_fds.size(), -1); // -1 blocking
-
-        if (_poll_fds[0].revents & POLLIN)
-        {
-            connectClient();
-        }
-        for (size_t i = _poll_fds.size() - 1; i >= 1; i--)
-        {
-            if (_poll_fds[i].revents & POLLIN)
-            {
-                char buffer[512];
-                ssize_t bytes_recvd;
-                Client &currClient = _state._clients[_poll_fds[i].fd];
-                bytes_recvd = recv(currClient.getFd(), buffer, sizeof(buffer) - 1, 0);
-                if (bytes_recvd <= 0)
-                {
-                    disconnectClient(currClient);
-                    continue;
-                }
-                if (bytes_recvd >= 512)
-                {
-                    std::cout << "SPAM!!! Client disconnected!\n";
-                    disconnectClient(currClient);
-                    continue;
-                }
-                buffer[bytes_recvd] = '\0';
-                std::string msg(buffer);
-                try
-                {
-                    size_t pos = 0;
-                    while ((pos = msg.find("\r\n")) != std::string::npos)
-                    {
-
-                        std::cout << "client to server [" << currClient.getFd() << "]{" << currClient.getUsername() << "} : " << msg << "\n";
-                        IrcMsg request;
-                        request.create(msg.substr(0, pos + 2));
-                        handleRequest(currClient, request);
-                        msg = msg.substr(pos + 2);
-                    }
-                }
-                catch (const IrcMsg::IrcMsgException &e)
-                {
-                    std::cerr << e.what() << currClient << std::endl;
-                }
-                catch (const ServerException &e)
-                {
-                    std::cerr << e.what() << std::endl;
-                    disconnectClient(currClient);
-                }
-            }
-        }
-    }
-    close(_server_fd);
-}
-
-// void Server::sendMsg(const Client &client, const IrcMsg &response) const
-// {
-//     std::cout << "server to client [" << client.getFd() << "]{" << client.getUsername() << "} : " << response.get_msg() << std::endl;
-//     send(client.getFd(), response.get_msg().c_str(), response.get_msg().size(), 0);
-// }
-
-void Server::sendMsg(const Client &client, const std::string &msg) const
-{
-    std::cout << "server to client [" << client.getFd() << "]{" << client.getUsername() << "} : " << msg << std::endl;
-    send(client.getFd(), msg.c_str(), msg.size(), 0);
-}
-
-void Server::sendMsg(const Client &client, const char *msg) const
-{
-    std::cout << "server to client [" << client.getFd() << "]{" << client.getUsername() << "} : " << msg << std::endl;
-
-    send(client.getFd(), msg, std::strlen(msg), 0);
-}
-
-void Server::sendWelcomeMessage(const Client &client) const
-{
-    std::string msg(":" + _serverName + " 001 " + client.getNickname() + " :Welcome to the IRC Network " + client.getPrefix() + "\r\n");
-    sendMsg(client, msg);
-    // sendMsg(client, _serverPrefix + "002 " + client.getNickname() + " :Your host is " + _serverName + ", running version 1.0\r\n");
-}
-
-void Server::broadcastToChannel(const Client &client, const Channel &channel, const std::string &msg)
-{
-    const std::string senderNick = client.getNickname();
-
-    for (const Client *currentClient : channel.getMembers())
-    {
-        // Sende NICHT an den ursprünglichen Sender
-        if (currentClient->getNickname() == senderNick)
-            continue;
-
-        sendMsg(*currentClient, msg);
-    }
-}
-
-void Server::connectClient(void)
-{
-    struct sockaddr_in client_addr;
-    socklen_t client_len = sizeof(client_addr);
-
-    int client_fd = accept(_poll_fds[0].fd, (struct sockaddr *)&client_addr, &client_len);
-    if (client_fd < 0)
-        throw ServerException("Error client accept");
-
-    char hostname[INET_ADDRSTRLEN];
-    inet_ntop(AF_INET, &client_addr.sin_addr, hostname, INET_ADDRSTRLEN);
-
-    // add client_fd to _polls_fds and create Client with same fd and add to _clients
-    _poll_fds.push_back(pollfd{client_fd, POLLIN, 0});
-    _state._clients[client_fd] = Client(client_fd, hostname);
-    std::cout << "new client connected: " << hostname << " (FD: " << client_fd << ")" << std::endl;
-}
-
-void Server::disconnectClient(Client &client)
-{
-    int client_fd = client.getFd();
-
-    auto poll_it = std::find_if(_poll_fds.begin(), _poll_fds.end(),
-                                [client_fd](pollfd p)
-                                {
-                                    return p.fd == client_fd;
-                                });
-
-    if (poll_it == _poll_fds.end())
-    {
-        throw ServerException("Error: Client not found in the _poll_fds list.");
-        std::cerr << "Error: Client not found in the _poll_fds list." << std::endl;
-    }
-    if (_state._clients.erase(client_fd) == 0)
-    {
-        throw ServerException("Error: Client not found in the _clients list.");
-        std::cerr << "Error: Client not found in the _clients list." << std::endl;
-    }
-
-    std::cout << "Disconnected!" << std::endl;
-    std::cout << client << std::endl;
-    // TODO: close client_fd here or in Client destructor ??
-    _poll_fds.erase(poll_it);
-}
-
-void Server::handleRequest(Client &client, const IrcMsg &msg)
-{
-    _commands.dispatch(client, *this, msg);
 }

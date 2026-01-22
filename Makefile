@@ -10,7 +10,7 @@ INCLUDES = \
 
 VPATH = ./src ./src/server ./src/commands ./src/client ./src/channel ./src/protocol
 
-SRCS = main.cpp Server.cpp ServerState.cpp ServerUtils.cpp  Client.cpp Channel.cpp IrcMsg.cpp  \
+SRCS = main.cpp Server.cpp ServerIO.cpp ServerLoop.cpp ServerState.cpp  Client.cpp Channel.cpp IrcMsg.cpp  \
 	CommandDispatcher.cpp \
 	CapCommand.cpp \
 	PassCommand.cpp \
@@ -31,7 +31,7 @@ SRCS = main.cpp Server.cpp ServerState.cpp ServerUtils.cpp  Client.cpp Channel.c
 OBJS_DIR = objects
 OBJS = $(addprefix $(OBJS_DIR)/, $(SRCS:.cpp=.o))
 
-CXXFLAGS = -std=c++17 -Wall -Wextra -Werror $(INCLUDES)
+CXXFLAGS = -std=c++17 -Wall -Wextra -Werror $(INCLUDES) -g -fsanitize=address
 
 all: $(NAME)
 

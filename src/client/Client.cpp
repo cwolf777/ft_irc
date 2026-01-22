@@ -2,7 +2,7 @@
 #include "Client.hpp"
 #include "Channel.hpp"
 
-bool checkNickname(const std::string &nick)
+static bool checkNickname(const std::string &nick)
 {
     // allowed: letters: a-z, A-Z, numbers: 0-9, extras: - [ ] \ ^ { }`
     // firstChar must NOT be extra or number
@@ -34,51 +34,55 @@ bool checkNickname(const std::string &nick)
     return true;
 }
 
-Client::Client() : _fd(-1),
-                   _nickname(""),
-                   _username(""),
-                   _realName(""),
-                   _hostname(""),
-                   _hasNick(false),
-                   _hasUser(false),
-                   _hasPass(false),
-                   _isRegistered(false),
-                   _joinedChannels()
+Client::Client()
+    : _fd(-1),
+      _nickname(""),
+      _username(""),
+      _realName(""),
+      _hostname(""),
+      _hasNick(false),
+      _hasUser(false),
+      _hasPass(false),
+      _isRegistered(false),
+      _joinedChannels()
 {
 }
 
-Client::Client(int fd) : _fd(fd),
-                         _nickname(""),
-                         _username(""),
-                         _realName(""),
-                         _hostname(""),
-                         _hasNick(false),
-                         _hasUser(false),
-                         _hasPass(false),
-                         _isRegistered(false),
-                         _joinedChannels() {}
+Client::Client(int fd)
+    : _fd(fd),
+      _nickname(""),
+      _username(""),
+      _realName(""),
+      _hostname(""),
+      _hasNick(false),
+      _hasUser(false),
+      _hasPass(false),
+      _isRegistered(false),
+      _joinedChannels() {}
 
-Client::Client(int fd, const std::string &hostname) : _fd(fd),
-                                                      _nickname(""),
-                                                      _username(""),
-                                                      _realName(""),
-                                                      _hostname(hostname),
-                                                      _hasNick(false),
-                                                      _hasUser(false),
-                                                      _hasPass(false),
-                                                      _isRegistered(false),
-                                                      _joinedChannels() {}
+Client::Client(int fd, const std::string &hostname)
+    : _fd(fd),
+      _nickname(""),
+      _username(""),
+      _realName(""),
+      _hostname(hostname),
+      _hasNick(false),
+      _hasUser(false),
+      _hasPass(false),
+      _isRegistered(false),
+      _joinedChannels() {}
 
-Client::Client(const Client &other) : _fd(other._fd),
-                                      _nickname(other._nickname),
-                                      _username(other._username),
-                                      _realName(other._realName),
-                                      _hostname(other._hostname),
-                                      _hasNick(other._hasNick),
-                                      _hasUser(other._hasUser),
-                                      _hasPass(other._hasPass),
-                                      _isRegistered(other._isRegistered),
-                                      _joinedChannels(other._joinedChannels)
+Client::Client(const Client &other)
+    : _fd(other._fd),
+      _nickname(other._nickname),
+      _username(other._username),
+      _realName(other._realName),
+      _hostname(other._hostname),
+      _hasNick(other._hasNick),
+      _hasUser(other._hasUser),
+      _hasPass(other._hasPass),
+      _isRegistered(other._isRegistered),
+      _joinedChannels(other._joinedChannels)
 
 {
 }
@@ -102,14 +106,60 @@ Client &Client::operator=(const Client &other)
     return *this;
 }
 
+// MOVE CONSTRUCTOR
+// Client::Client(Client &&other) noexcept
+//     : _fd(other._fd),
+//       _nickname(std::move(other._nickname)),
+//       _username(std::move(other._username)),
+//       _realName(std::move(other._realName)),
+//       _hostname(std::move(other._hostname)),
+//       _hasNick(other._hasNick),
+//       _hasUser(other._hasUser),
+//       _hasPass(other._hasPass),
+//       _isRegistered(other._isRegistered),
+//       _joinedChannels(std::move(other._joinedChannels))
+// {
+//     other._fd = -1;
+// }
+
+// Client &Client::operator=(Client &&other) noexcept
+// {
+//     if (this == &other)
+//         return *this;
+
+//     if (_fd > 0)
+//         close(_fd);
+
+//     _fd = other._fd;
+//     other._fd = -1;
+
+//     _nickname = std::move(other._nickname);
+//     _username = std::move(other._username);
+//     _realName = std::move(other._realName);
+//     _hostname = std::move(other._hostname);
+
+//     _hasNick = other._hasNick;
+//     _hasUser = other._hasUser;
+//     _hasPass = other._hasPass;
+//     _isRegistered = other._isRegistered;
+//     _joinedChannels = std::move(other._joinedChannels);
+
+//     return *this;
+// }
+
+// Fd will be closed safely in disconnectClient
 Client::~Client()
 {
     // if (_fd > 0)
     //     close(_fd);
-} // TODO: CLOSE FD
+}
 
 int Client::getFd() const
 {
+    if (_fd == -1)
+    {
+        throw std::runtime_error("Attempted to use a Client with invalid fd!");
+    }
     return _fd;
 }
 
@@ -219,10 +269,6 @@ bool Client::canRegister()
     }
     return false;
 }
-
-// void Client::sendMessage(const std::string &msg) const
-// {
-// }
 
 std::ostream &operator<<(std::ostream &os, const Client &client)
 {
