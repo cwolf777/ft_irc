@@ -33,6 +33,8 @@ Server &Server::operator=(const Server &other)
 
 Server::~Server()
 {
+    std::cout << "\nserver closed..." << std::endl;
+    shutdown("Server shutting down");
     if (_server_fd > 0)
         close(_server_fd);
 }

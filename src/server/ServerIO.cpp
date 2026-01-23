@@ -35,15 +35,19 @@ void Server::broadcastToChannel(const Client &client, const Channel &channel, co
 bool Server::receive(int fd, std::string &data)
 {
     char buffer[512];
+    std::memset(buffer, 0, sizeof(buffer));
     ssize_t bytes = recv(fd, buffer, sizeof(buffer) - 1, 0);
 
-    if (bytes <= 0)
+    if (bytes == 0)
         return false;
 
-    if (bytes >= 512)
-        throw ServerException("Client flood detected");
-
-    buffer[bytes] = '\0';
-    data.assign(buffer);
+    if (bytes < 0)
+    {
+        if (errno == EWOULDBLOCK || errno == EAGAIN)
+            return true;
+        std::cerr << "Recv error on fd " << fd << ": " << std::strerror(errno) << std::endl;
+        return false;
+    }
+    data.assign(buffer, bytes);
     return true;
 }
