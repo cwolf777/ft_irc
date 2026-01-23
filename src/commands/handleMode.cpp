@@ -23,6 +23,9 @@ void handleMode(Client &client, Server &server, const IrcMsg &msg)
     ServerState &state = server.getServerState();
     const std::string &channelName = params[0];
 
+    if (channelName[0] != '#')
+        return;
+
     Channel *currChannel = state.getChannel(channelName);
     if (!currChannel)
     {
