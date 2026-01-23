@@ -13,6 +13,7 @@ class Channel
 private:
     std::string _name;
     std::string _topic;
+    std::string _password;
     std::vector<Client *> _members;
     std::vector<Client *> _operators;
     std::set<Client *> _invites;
@@ -21,7 +22,6 @@ private:
     bool _inviteOnly;
     bool _topicProtected;
     bool _passwordSet;
-    std::string _password;
     bool _userLimitSet;
     int _userlimit;
 

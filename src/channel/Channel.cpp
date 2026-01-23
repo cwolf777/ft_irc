@@ -1,18 +1,54 @@
 #include "Channel.hpp"
 #include "Client.hpp"
 
-Channel::Channel() : _name(""), _topic(""), _inviteOnly(false), _topicProtected(false), _password(""), _userlimit(100) {}
+// TODO: warum userlimitSet false wenn userlimit 100 ist ???
+Channel::Channel()
+    : _name(""),
+      _topic(""),
+      _password(""),
+      _inviteOnly(false),
+      _topicProtected(false),
+      _passwordSet(false),
+      _userLimitSet(false),
+      _userlimit(100) {}
 
-Channel::Channel(const std::string &name) : _name(name), _topic(""), _inviteOnly(false), _topicProtected(false), _password(""), _userlimit(INT32_MAX)
+Channel::Channel(const std::string &name)
+    : _name(name),
+      _topic(""),
+      _password(""),
+      _inviteOnly(false),
+      _topicProtected(false),
+      _passwordSet(false),
+      _userLimitSet(false),
+      _userlimit(100)
 {
     // TODO: password check channel name check topic check
 }
-Channel::Channel(const std::string &name, const std::string &password) : _name(name), _topic(""), _inviteOnly(false), _topicProtected(false), _password(password), _userlimit(INT32_MAX)
+Channel::Channel(const std::string &name, const std::string &password)
+    : _name(name),
+      _topic(""),
+      _password(password),
+      _inviteOnly(false),
+      _topicProtected(false),
+      _passwordSet(true),
+      _userLimitSet(false),
+      _userlimit(100)
 {
     // TODO: password check channel name check topic check
 }
 
-Channel::Channel(const Channel &other) : _name(other._name), _topic(other._topic), _members(other._members), _operators(other._operators), _inviteOnly(other._inviteOnly), _topicProtected(other._topicProtected), _password(other._password), _userlimit(other._userlimit)
+Channel::Channel(const Channel &other)
+    : _name(other._name),
+      _topic(other._topic),
+      _password(other._password),
+      _members(other._members),
+      _operators(other._operators),
+      _invites(other._invites),
+      _inviteOnly(other._inviteOnly),
+      _topicProtected(other._topicProtected),
+      _passwordSet(other._passwordSet),
+      _userLimitSet(other._userLimitSet),
+      _userlimit(other._userlimit)
 {
 }
 
@@ -23,12 +59,15 @@ Channel &Channel::operator=(const Channel &other)
 
     _name = other._name;
     _topic = other._topic;
+    _password = other._password;
     _members = other._members;
     _operators = other._operators;
+    _invites = other._invites;
 
     _inviteOnly = other._inviteOnly;
     _topicProtected = other._topicProtected;
-    _password = other._password;
+    _passwordSet = other._passwordSet;
+    _userLimitSet = other._userLimitSet;
     _userlimit = other._userlimit;
     return *this;
 }
