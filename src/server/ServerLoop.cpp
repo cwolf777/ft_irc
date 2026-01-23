@@ -74,15 +74,15 @@ void Server::run()
                     _polls.erase(_polls.begin() + i);
                     continue;
                 }
-                std::string data;
+                std::string rawData;
                 try
                 {
-                    if (!receive(_polls[i].fd, data))
+                    if (!receive(_polls[i].fd, rawData))
                     {
                         disconnectClient(*client);
                         continue;
                     }
-                    processBuffer(*client, data);
+                    processBuffer(*client, rawData);
                 }
                 catch (const ServerException &e)
                 {
@@ -100,17 +100,24 @@ void Server::run()
     std::cout << "\nserver closed..." << std::endl;
 }
 
-void Server::processBuffer(Client &client, std::string &buffer)
+void Server::processBuffer(Client &client, std::string &rawData)
 {
+    client.getBuffer() += rawData;
+    std::string &buffer = client.getBuffer();
     size_t pos;
     while ((pos = buffer.find("\r\n")) != std::string::npos)
     {
-        std::string raw = buffer.substr(0, pos + 2);
+        std::string line = buffer.substr(0, pos + 2);
         buffer.erase(0, pos + 2);
 
+        if (line.length() > 512)
+        {
+            disconnectClient(client);
+            return;
+        }
         IrcMsg msg;
-        msg.create(raw);
-        std::cout << "[" << client.getFd() << "]{" << client.getUsername() << "} : " << raw << "\n";
+        msg.create(line);
+        std::cout << "[" << client.getFd() << "]{" << client.getUsername() << "} : " << line << "\n";
         handleRequest(client, msg);
     }
 }

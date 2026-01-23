@@ -29,6 +29,8 @@ private:
 
     std::vector<Channel *> _joinedChannels;
 
+    std::string _buffer;
+
 public:
     Client();
     Client(int fd);
@@ -47,6 +49,8 @@ public:
     bool getIsRegistered() const;
     std::vector<Channel *> &getChannels();
     std::string getPrefix() const;
+
+    std::string &getBuffer();
     bool hasNick() const;
     bool hasUser() const;
     bool hasPass() const;

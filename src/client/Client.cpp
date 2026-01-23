@@ -58,7 +58,8 @@ Client::Client(int fd)
       _hasUser(false),
       _hasPass(false),
       _isRegistered(false),
-      _joinedChannels() {}
+      _joinedChannels(),
+      _buffer("") {}
 
 Client::Client(int fd, const std::string &hostname)
     : _fd(fd),
@@ -70,7 +71,8 @@ Client::Client(int fd, const std::string &hostname)
       _hasUser(false),
       _hasPass(false),
       _isRegistered(false),
-      _joinedChannels() {}
+      _joinedChannels(),
+      _buffer("") {}
 
 Client::Client(const Client &other)
     : _fd(other._fd),
@@ -82,7 +84,8 @@ Client::Client(const Client &other)
       _hasUser(other._hasUser),
       _hasPass(other._hasPass),
       _isRegistered(other._isRegistered),
-      _joinedChannels(other._joinedChannels)
+      _joinedChannels(other._joinedChannels),
+      _buffer(other._buffer)
 
 {
 }
@@ -103,6 +106,7 @@ Client &Client::operator=(const Client &other)
     _hasPass = other._hasPass;
     _isRegistered = other._isRegistered;
     _joinedChannels = other._joinedChannels;
+    _buffer = other._buffer;
     return *this;
 }
 
@@ -197,6 +201,11 @@ std::string Client::getPrefix() const
 {
     // Format: Nick!User@Host
     return _nickname + "!" + _username + "@" + _hostname;
+}
+
+std::string &Client::getBuffer()
+{
+    return _buffer;
 }
 
 bool Client::hasNick() const
