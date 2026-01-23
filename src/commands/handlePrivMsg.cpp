@@ -1,8 +1,7 @@
-#include "PrivMsgCommand.hpp"
 #include "Server.hpp"
 #include "Channel.hpp"
 
-void PrivMsgCommand::execute(Client &client, Server &server, const IrcMsg &msg)
+void handlePrivMsg(Client &client, Server &server, const IrcMsg &msg)
 {
     // Command: PRIVMSG
     // Parameters: <receiver>{,<receiver>} <text to be sent>

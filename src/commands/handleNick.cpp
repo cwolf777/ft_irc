@@ -1,8 +1,7 @@
-#include "NickCommand.hpp"
 #include "Server.hpp"
 #include "Channel.hpp"
 
-void NickCommand::execute(Client &client, Server &server, const IrcMsg &msg)
+void handleNick(Client &client, Server &server, const IrcMsg &msg)
 {
     if (msg.get_params().empty())
     {

@@ -1,8 +1,7 @@
-#include "PartCommand.hpp"
 #include "Server.hpp"
 #include "Channel.hpp"
 
-void PartCommand::execute(Client &client, Server &server, const IrcMsg &msg)
+void handlePart(Client &client, Server &server, const IrcMsg &msg)
 {
     const std::vector<std::string> &params = msg.get_params();
 

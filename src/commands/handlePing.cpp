@@ -1,8 +1,7 @@
-#include "PingCommand.hpp"
 #include "Server.hpp"
 #include "Channel.hpp"
 
-void PingCommand::execute(Client &client, Server &server, const IrcMsg &msg)
+void handlePing(Client &client, Server &server, const IrcMsg &msg)
 {
     if (msg.get_params().empty())
     {

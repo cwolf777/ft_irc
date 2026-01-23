@@ -1,9 +1,8 @@
-#include "WhoCommand.hpp"
 #include "Server.hpp"
 #include "Channel.hpp"
 #include "ServerState.hpp"
 
-void WhoCommand::execute(Client &client, Server &server, const IrcMsg &msg)
+void handleWho(Client &client, Server &server, const IrcMsg &msg)
 {
     if (msg.get_params().empty())
         return;

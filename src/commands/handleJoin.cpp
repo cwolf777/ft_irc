@@ -1,9 +1,8 @@
-#include "JoinCommand.hpp"
 #include "Server.hpp"
 #include "Channel.hpp"
 
 // TODO: cleaner machen
-void JoinCommand::execute(Client &client, Server &server, const IrcMsg &msg)
+void handleJoin(Client &client, Server &server, const IrcMsg &msg)
 {
     // ERR_NEEDMOREPARAMS Join command needs channel name as parameter : JOIN #foobar
     if (msg.get_params().empty())

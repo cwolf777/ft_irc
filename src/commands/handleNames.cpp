@@ -1,8 +1,7 @@
-#include "NamesCommand.hpp"
 #include "Server.hpp"
 #include "Channel.hpp"
 
-void NamesCommand::execute(Client &client, Server &server, const IrcMsg &msg)
+void handleNames(Client &client, Server &server, const IrcMsg &msg)
 {
     const std::vector<std::string> &params = msg.get_params();
     if (params.empty())

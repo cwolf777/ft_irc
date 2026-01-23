@@ -1,8 +1,7 @@
-#include "CapCommand.hpp"
 #include "Server.hpp"
 #include "Channel.hpp"
 
-void CapCommand::execute(Client &client, Server &server, const IrcMsg &msg)
+void handleCap(Client &client, Server &server, const IrcMsg &msg)
 {
     if (client.getIsRegistered())
     {

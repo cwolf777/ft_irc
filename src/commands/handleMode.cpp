@@ -1,8 +1,7 @@
-#include "ModeCommand.hpp"
 #include "Server.hpp"
 #include "Channel.hpp"
 
-void ModeCommand::execute(Client &client, Server &server, const IrcMsg &msg)
+void handleMode(Client &client, Server &server, const IrcMsg &msg)
 {
     // MODE #channel <modestring> [modeparams...] bswp: MODE #channelName +it
     // msg.get_cmd()      == "MODE"

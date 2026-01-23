@@ -1,8 +1,7 @@
-#include "PassCommand.hpp"
 #include "Server.hpp"
 #include "Channel.hpp"
 
-void PassCommand::execute(Client &client, Server &server, const IrcMsg &msg)
+void handlePass(Client &client, Server &server, const IrcMsg &msg)
 {
     if (client.getIsRegistered())
     {

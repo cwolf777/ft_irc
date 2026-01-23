@@ -1,8 +1,7 @@
-#include "TopicCommand.hpp"
 #include "Server.hpp"
 #include "Channel.hpp"
 
-void TopicCommand::execute(Client &client, Server &server, const IrcMsg &msg)
+void handleTopic(Client &client, Server &server, const IrcMsg &msg)
 {
     const std::vector<std::string> &params = msg.get_params();
 

@@ -1,11 +1,10 @@
-#include "InviteCommand.hpp"
 #include "Server.hpp"
 #include "Channel.hpp"
 #include "ServerState.hpp"
 
 // Command: INVITE
 // Parameters : <nickname> <channel>
-void InviteCommand::execute(Client &client, Server &server, const IrcMsg &msg)
+void handleInvite(Client &client, Server &server, const IrcMsg &msg)
 {
     std::vector<std::string> inviteParams = msg.get_params();
 

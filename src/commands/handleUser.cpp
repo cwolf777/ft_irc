@@ -1,8 +1,7 @@
-#include "UserCommand.hpp"
 #include "Server.hpp"
 #include "Channel.hpp"
 
-void UserCommand::execute(Client &client, Server &server, const IrcMsg &msg)
+void handleUser(Client &client, Server &server, const IrcMsg &msg)
 {
     // USER <username> <hostname> <servername> :<realname>
     // USER chris 0 * :Christopher Klein

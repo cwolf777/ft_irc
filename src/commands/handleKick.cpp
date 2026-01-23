@@ -1,9 +1,8 @@
-#include "KickCommand.hpp"
 #include "Server.hpp"
 #include "Channel.hpp"
 #include "ServerState.hpp"
 
-void KickCommand::execute(Client &client, Server &server, const IrcMsg &msg)
+void handleKick(Client &client, Server &server, const IrcMsg &msg)
 {
     // KICK <channel> <user> [comment]
     if (msg.get_params().size() < 2)

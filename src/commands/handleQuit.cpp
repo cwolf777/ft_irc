@@ -1,8 +1,7 @@
-#include "QuitCommand.hpp"
 #include "Server.hpp"
 #include "Channel.hpp"
 
-void QuitCommand::execute(Client &client, Server &server, const IrcMsg &msg)
+void handleQuit(Client &client, Server &server, const IrcMsg &msg)
 {
     std::string reason = msg.get_params().empty() ? client.getNickname() : msg.get_params()[0];
 

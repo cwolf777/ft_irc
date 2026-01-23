@@ -12,21 +12,21 @@ VPATH = ./src ./src/server ./src/commands ./src/client ./src/channel ./src/proto
 
 SRCS = main.cpp Server.cpp ServerIO.cpp ServerLoop.cpp ServerState.cpp  Client.cpp Channel.cpp IrcMsg.cpp  \
 	CommandDispatcher.cpp \
-	CapCommand.cpp \
-	PassCommand.cpp \
-	UserCommand.cpp \
-	JoinCommand.cpp \
-	NickCommand.cpp \
-	PrivMsgCommand.cpp \
-	KickCommand.cpp \
-	InviteCommand.cpp \
-	ModeCommand.cpp \
-	NamesCommand.cpp \
-	WhoCommand.cpp \
-	PingCommand.cpp \
-	QuitCommand.cpp \
-	TopicCommand.cpp \
-	PartCommand.cpp
+	handleCap.cpp \
+	handlePass.cpp \
+	handleUser.cpp \
+	handleJoin.cpp \
+	handleNick.cpp \
+	handlePrivMsg.cpp \
+	handleKick.cpp \
+	handleInvite.cpp \
+	handleMode.cpp \
+	handleNames.cpp \
+	handleWho.cpp \
+	handlePing.cpp \
+	handleQuit.cpp \
+	handleTopic.cpp \
+	handlePart.cpp
 
 OBJS_DIR = objects
 OBJS = $(addprefix $(OBJS_DIR)/, $(SRCS:.cpp=.o))
