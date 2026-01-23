@@ -26,7 +26,7 @@ void Server::disconnectClient(Client &client)
 {
     int client_fd = client.getFd();
     std::cout << "Disconnected: " << client.getNickname() << " (FD: " << client_fd << ")" << std::endl;
-    std::cout << client << std::endl;
+    // std::cout << client << std::endl;
 
     auto poll_it = std::find_if(_polls.begin(), _polls.end(),
                                 [client_fd](pollfd p)
@@ -38,7 +38,10 @@ void Server::disconnectClient(Client &client)
     if (_state._clients.erase(client_fd) == 0)
         std::cerr << "Warning: FD " << client_fd << " was already gone from Map." << std::endl;
     else
+    {
+        std::cout << "(FD: " << client_fd << ") closed" << std::endl;
         close(client_fd); // important
+    }
 }
 
 void Server::run()
@@ -93,8 +96,6 @@ void Server::run()
                         disconnectClient(*client);
                         continue;
                     }
-                    if (errno == EWOULDBLOCK || EAGAIN)
-                        continue;
                     processBuffer(*client, rawData);
                 }
                 catch (const ServerException &e)
