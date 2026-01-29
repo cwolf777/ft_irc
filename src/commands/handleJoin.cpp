@@ -7,10 +7,10 @@ static bool isValidChannelName(const std::string &name)
     if (name.empty() || name.size() > 50)
         return false;
 
-    if (name[0] != '#' || name[0] != '&')
+    if (name[0] != '#' && name[0] != '&')
         return false;
 
-    if (name.find(" ,\a") != std::string::npos)
+    if (name.find_first_of(" ,\a") != std::string::npos)
         return false;
 
     return true;
@@ -106,6 +106,7 @@ void handleJoin(Client &client, Server &server, const IrcMsg &msg)
         std::string name = channels[i];
         std::string key = (i < keys.size()) ? keys[i] : "";
         std::transform(name.begin(), name.end(), name.begin(), ::tolower);
+        std::cout << "channel Name: " << name << std::endl;
         processJoin(client, server, name, key);
     }
 }
