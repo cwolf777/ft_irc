@@ -1,7 +1,6 @@
 #include "Channel.hpp"
 #include "Client.hpp"
 
-// TODO: warum userlimitSet false wenn userlimit 100 ist ???
 Channel::Channel()
     : _name(""),
       _topic(""),
@@ -10,7 +9,7 @@ Channel::Channel()
       _topicProtected(false),
       _passwordSet(false),
       _userLimitSet(false),
-      _userlimit(100) {}
+      _userlimit(0) {}
 
 Channel::Channel(const std::string &name)
     : _name(name),
@@ -20,7 +19,7 @@ Channel::Channel(const std::string &name)
       _topicProtected(false),
       _passwordSet(false),
       _userLimitSet(false),
-      _userlimit(100)
+      _userlimit(0)
 {
     // TODO: password check channel name check topic check
 }
@@ -32,7 +31,7 @@ Channel::Channel(const std::string &name, const std::string &password)
       _topicProtected(false),
       _passwordSet(true),
       _userLimitSet(false),
-      _userlimit(100)
+      _userlimit(0)
 {
     // TODO: password check channel name check topic check
 }
