@@ -3,12 +3,6 @@
 
 void handleMode(Client &client, Server &server, const IrcMsg &msg)
 {
-    // MODE #channel <modestring> [modeparams...] bswp: MODE #channelName +it
-    // msg.get_cmd()      == "MODE"
-    // msg.get_params()   == { "#test", "+i" }
-
-    // 1. genug Parameter?
-
     const std::vector<std::string> &params = msg.get_params();
 
     if (params.size() < 2)
@@ -17,8 +11,6 @@ void handleMode(Client &client, Server &server, const IrcMsg &msg)
         server.sendMsg(client, reply);
         return;
     }
-
-    // 2. Channel existiert?
 
     ServerState &state = server.getServerState();
     const std::string &channelName = params[0];
@@ -34,22 +26,18 @@ void handleMode(Client &client, Server &server, const IrcMsg &msg)
         return; // ERR_NOSUCHCHANNEL
     }
 
-    // 3. Client ist Operator?
-
     if (!currChannel->isOperator(client))
     {
-        std::string reply = ":" + server.getServerName() + " 483 " + client.getNickname() + " " + channelName + " :You're not channel operator\r\n";
+        std::string reply = ":" + server.getServerName() + " 482 " + client.getNickname() + " " + channelName + " :You're not channel operator\r\n";
         server.sendMsg(client, reply);
         return; // ERR_CHANOPRIVSNEEDED
     }
-
-    // 4. Modestring parsen (+ / -)
 
     const std::string modeStr = params[1];
     bool adding = true;
     size_t paramIndex = 2;
 
-    // TO DO: WENN MINUS KEIN PARAMS > 2?
+    // TODO: WENN MINUS KEIN PARAMS > 2?
 
     for (size_t i = 0; i < modeStr.size(); ++i)
     {
@@ -100,8 +88,6 @@ void handleMode(Client &client, Server &server, const IrcMsg &msg)
                 int limit = std::atoi(params[paramIndex++].c_str());
                 if (limit < 0)
                     limit = 0;
-                if (limit > 100) // TODO: change hardcoded value
-                    limit = 100;
                 currChannel->setLimit(limit);
             }
             else
@@ -113,7 +99,6 @@ void handleMode(Client &client, Server &server, const IrcMsg &msg)
             break;
         }
     }
-    // MODE ANEDERUNGEN BROADCASTEN: IRC KONFORM: :nick!user@host MODE #chan +kl geheim 10
     std::string reply = ":" + client.getPrefix() + " MODE " + channelName;
     for (size_t i = 1; i < params.size(); ++i)
         reply += " " + params[i];
