@@ -38,6 +38,7 @@ public:
     void invite(Client *client);
 
     void removeMember(const Client &client);
+    void removeOperator(const Client &client);
 
     std::string getName() const;
     std::string getTopic() const;

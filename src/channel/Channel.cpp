@@ -178,6 +178,17 @@ void Channel::removeMember(const Client &client)
         }
     }
 }
+void Channel::removeOperator(const Client &client)
+{
+    for (auto it = _operators.begin(); it != _operators.end(); ++it)
+    {
+        if ((*it)->getNickname() == client.getNickname())
+        {
+            _operators.erase(it);
+            return;
+        }
+    }
+}
 
 bool Channel::isPasswordSet() const
 {

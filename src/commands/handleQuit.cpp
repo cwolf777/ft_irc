@@ -7,11 +7,11 @@ void handleQuit(Client &client, Server &server, const IrcMsg &msg)
 
     std::string reply = ":" + client.getPrefix() + " QUIT :Quit: " + reason + "\r\n";
 
-    // TODO: REMOVE FROM OPERATOR LIST
     for (Channel *chan : client.getChannels())
     {
         server.broadcastToChannel(client, *chan, reply);
         chan->removeMember(client);
+        chan->removeOperator(client);
     }
 
     reply = "ERROR :Closing Link: " + client.getHostname() + " (Quit: " + reason + ")\r\n";
