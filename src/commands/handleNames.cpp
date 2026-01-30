@@ -24,8 +24,6 @@ void handleNames(Client &client, Server &server, const IrcMsg &msg)
     {
         if (currChannel->isOperator(*member))
             names += "@";
-        // else if (channel.hasVoice(*member))
-        //     names += "+";
 
         names += member->getNickname();
         names += " ";

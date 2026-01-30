@@ -67,7 +67,6 @@ void handleKick(Client &client, Server &server, const IrcMsg &msg)
         return;
     }
 
-    // TODO: was wenn keine comment
     std::string kickMsg = ":" + client.getPrefix() +
                           " KICK " + channelName + " " + targetNick +
                           " :" + comment + "\r\n";

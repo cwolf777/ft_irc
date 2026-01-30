@@ -37,8 +37,6 @@ void handleMode(Client &client, Server &server, const IrcMsg &msg)
     bool adding = true;
     size_t paramIndex = 2;
 
-    // TODO: WENN MINUS KEIN PARAMS > 2?
-
     for (size_t i = 0; i < modeStr.size(); ++i)
     {
         char c = modeStr[i];
