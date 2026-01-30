@@ -19,6 +19,8 @@ void handleNotice(Client &client, Server &server, const IrcMsg &msg)
         if (!channel)
             return;
 
+        if (!channel->isMember(client))
+            return;
         server.broadcastToChannel(client, *channel,
                                   ":" + client.getPrefix() + " NOTICE " + target + " :" + text + "\r\n");
     }
