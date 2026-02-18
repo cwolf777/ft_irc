@@ -269,14 +269,14 @@ void Client::setHasUser(bool flag)
 
 void Client::setBuffer(const std::string &buffer)
 {
-    if (buffer.size() > 512)
+    if (buffer.size() > sizeof(char) * 512)
         throw std::overflow_error("Buffer overflow: incoming data exceeds buffer size");
     _buffer = buffer;
 }
 
 void Client::appendToBuffer(const std::string &data)
 {
-    if (_buffer.size() + data.size() > 512)
+    if (_buffer.size() + data.size() > sizeof(char) * 512)
         throw std::overflow_error("Buffer overflow: incoming data exceeds buffer size");
     _buffer += data;
 }

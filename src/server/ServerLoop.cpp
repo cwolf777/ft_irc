@@ -107,7 +107,6 @@ void Server::run()
                 {
                     std::cerr << e.what() << '\n';
                     disconnectClient(*client);
-                    return;
                 }
                 catch (const IrcMsg::IrcMsgException &e)
                 {
@@ -130,8 +129,8 @@ void Server::processData(Client &client, std::string &rawData)
         std::string line = buffer.substr(0, pos + 2);
         buffer.erase(0, pos + 2);
         client.setBuffer(buffer);
-        if (line.length() > 512)
-            throw std::overflow_error("Buffer overflow: incoming data exceeds buffer size");
+        // if (line.size() > sizeof(char) * 512)
+        //     throw std::overflow_error("Buffer overflow: incoming data exceeds buffer size");
         IrcMsg msg;
         msg.create(line);
         std::cout << "[" << client.getFd() << "]{" << client.getUsername() << "} : " << line << "\n";
