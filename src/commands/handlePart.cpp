@@ -46,6 +46,9 @@ void handlePart(Client &client, Server &server, const IrcMsg &msg)
         server.broadcastToChannel(client, *currChannel, reply);
         server.sendMsg(client, reply);
 
+        if (currChannel->isOperator(client))
+            currChannel->removeOperator(client);
+
         currChannel->removeMember(client);
 
         if (currChannel->getMembers().empty())

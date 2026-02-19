@@ -71,8 +71,13 @@ void handleMode(Client &client, Server &server, const IrcMsg &msg)
                     currChannel->setPassword(params[paramIndex]);
                 }
                 else
-                    // 467
+                {
+                    std::string reply = ":" + server.getServerName() + " 467 " +
+                                        client.getNickname() + " " + channelName +
+                                        " :Channel key already set\r\n";
+                    server.sendMsg(client, reply);
                     paramIndex++;
+                }
             }
             else
                 currChannel->clearPassword();
@@ -91,6 +96,30 @@ void handleMode(Client &client, Server &server, const IrcMsg &msg)
             else
                 currChannel->clearUserLimit();
             break;
+        case 'o':
+        {
+            if (paramIndex >= params.size())
+                break;
+
+            const std::string &targetNick = params[paramIndex++];
+            Client *target = state.getClientByNick(targetNick);
+
+            if (!target || !currChannel->isMember(*target))
+            {
+                std::string reply = ":" + server.getServerName() + " 441 " +
+                                    client.getNickname() + " " + targetNick +
+                                    " " + channelName + " :They aren't on that channel\r\n";
+                server.sendMsg(client, reply);
+                break;
+            }
+
+            if (adding)
+                currChannel->addOperator(target);
+            else
+                currChannel->removeOperator(*target);
+
+            break;
+        }
         default:
             std::string reply = ":" + server.getServerName() + " 472 " + client.getNickname() + " " + c + "  :is unknown mode char to me\r\n";
             server.sendMsg(client, reply);
