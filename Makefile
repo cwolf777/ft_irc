@@ -36,7 +36,8 @@ CXXFLAGS = -std=c++17 -Wall -Wextra -Werror $(INCLUDES)
 
 all: $(NAME)
 
-debug: CXXFLAGS += -g3 -O0 -fno-omit-frame-pointer -fno-inline
+
+debug: CXXFLAGS += -g3 -O0 -fno-omit-frame-pointer -fno-inline -fsanitize=address
 debug: re
 
 $(NAME): $(OBJS)

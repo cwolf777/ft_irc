@@ -35,7 +35,7 @@ void Server::disconnectClient(Client &client)
     if (poll_it != _polls.end())
         _polls.erase(poll_it);
 
-    for (Channel *chan : client.getChannels())
+        for (Channel *chan : client.getChannels())
     {
         chan->removeMember(client);
         chan->removeOperator(client);
