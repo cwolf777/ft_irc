@@ -7,6 +7,7 @@ void handleMode(Client &client, Server &server, const IrcMsg &msg)
 
     if (params.size() < 2)
     {
+        //COMMENTED OUT FOR IRSSI BUG
         // std::string reply = ":" + server.getServerName() + " 461 " + client.getNickname() + " MODE :Not enough parameters\r\n";
         // server.sendMsg(client, reply);
         return;
@@ -32,8 +33,9 @@ void handleMode(Client &client, Server &server, const IrcMsg &msg)
 
     if (!currChannel->isOperator(client))
     {
-        std::string reply = ":" + server.getServerName() + " 482 " + client.getNickname() + " " + channelName + " :You're not channel operator\r\n";
-        server.sendMsg(client, reply);
+        //COMMENTED OUT FOR IRSSI BUG
+        // std::string reply = ":" + server.getServerName() + " 482 " + client.getNickname() + " " + channelName + " :You're not channel operator\r\n";
+        // server.sendMsg(client, reply);
         return; // ERR_CHANOPRIVSNEEDED
     }
 
