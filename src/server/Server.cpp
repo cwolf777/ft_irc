@@ -33,10 +33,6 @@ Server &Server::operator=(const Server &other)
 
 Server::~Server()
 {
-    std::cout << "\nserver closed..." << std::endl;
-    shutdown("Server shutting down");
-    if (_server_fd > 0)
-        close(_server_fd);
 }
 
 std::string Server::getServerName() const
@@ -95,5 +91,5 @@ void Server::init(int domain)
     // Changing _server_fd with Flags to be non blocking i/o
     int flags = fcntl(_server_fd, F_GETFL, 0);
     fcntl(_server_fd, F_SETFL, flags | O_NONBLOCK);
-    std::cout << "server runnning on port " << _port << "...\n";
+    std::cout << Color::MAGENTA << "server runnning on port " << _port << "..." << Color::RESET << std::endl;
 }

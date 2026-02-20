@@ -5,7 +5,7 @@ void handleCap(Client &client, Server &server, const IrcMsg &msg)
 {
     if (client.getIsRegistered())
     {
-        std::cout << "Warning: Registered client sent CAP command. Ignoring." << std::endl;
+        std::cout << Color::MAGENTA << "Warning: Registered client sent CAP command. Ignoring." << Color::RESET << std::endl;
         return;
     }
 

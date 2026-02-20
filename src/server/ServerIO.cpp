@@ -13,7 +13,7 @@ void Server::sendMsg(Client &client, const std::string &msg)
     if (output.empty())
         return;
 
-    std::cout << Color::BLUE << "server to  [" << client.getFd() << "]{" << client.getUsername() << "} : " << output << Color::RESET << std::endl;
+    std::cout << Color::BLUE << "server to  [" << client.getFd() << "]{" << client.getNickname() << "} : " << output << Color::RESET << std::endl;
     ssize_t bytesSent = send(client.getFd(), output.data(), output.size(), 0);
     if (bytesSent < 0)
     {

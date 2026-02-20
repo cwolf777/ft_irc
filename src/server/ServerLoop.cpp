@@ -18,13 +18,13 @@ void Server::connectClient(void)
     // add client_fd to _polls_fds and create Client with same fd and add to _clients
     _polls.push_back(pollfd{client_fd, POLLIN, 0});
     _state._clients.insert({client_fd, Client(client_fd, hostname)});
-    std::cout << "new client connected: " << hostname << " (FD: " << client_fd << ")" << std::endl;
+    std::cout << Color::MAGENTA << "new client connected: " << hostname << " (FD: " << client_fd << ")" << Color::RESET << std::endl;
 }
 
 void Server::disconnectClient(Client &client)
 {
     int client_fd = client.getFd();
-    std::cout << "Disconnected: " << client.getNickname() << " (FD: " << client_fd << ")" << std::endl;
+    std::cout << Color::MAGENTA << "Disconnected: " << client.getNickname() << " (FD: " << client_fd << ")" << Color::RESET << std::endl;
 
     auto poll_it = std::find_if(_polls.begin(), _polls.end(),
                                 [client_fd](pollfd p)
@@ -44,7 +44,7 @@ void Server::disconnectClient(Client &client)
         std::cerr << Color::RED << "Warning: FD " << client_fd << " was already erased from Map." << Color::RESET << std::endl;
     else
     {
-        std::cout << "(FD: " << client_fd << ") closed" << std::endl;
+        std::cout << Color::MAGENTA << "(FD: " << client_fd << ") closed" << Color::RESET << std::endl;
         close(client_fd); // important
     }
 }
@@ -84,7 +84,7 @@ void Server::run()
                 Client *client = _state.getClientByFd(_polls[i].fd);
                 if (!client || (_polls[i].revents & POLLNVAL))
                 {
-                    std::cerr << "Invalid or missing client for fd: " << _polls[i].fd << std::endl;
+                    std::cerr << Color::RED << "Invalid or missing client for fd: " << _polls[i].fd << Color::RESET << std::endl;
                     _polls.erase(_polls.begin() + i);
                     continue;
                 }
@@ -143,7 +143,7 @@ void Server::processData(Client &client, std::string &rawData)
         buffer.erase(0, pos + 2);
         IrcMsg msg;
         msg.create(line);
-        std::cout << Color::GREEN << "[" << client.getFd() << "]{" << client.getUsername() << "} : " << line << Color::RESET << "\n";
+        std::cout << Color::GREEN << "[" << client.getFd() << "]{" << client.getNickname() << "} : " << line << Color::RESET << "\n";
         handleRequest(client, msg);
         if (client.isDead())
             return;
@@ -152,6 +152,7 @@ void Server::processData(Client &client, std::string &rawData)
 
 void Server::shutdown(const std::string &reason)
 {
+    std::cout << Color::MAGENTA << "\nserver closed..." << Color::RESET << std::endl;
     while (!_state._clients.empty())
     {
         Client &client = _state._clients.begin()->second;
@@ -159,6 +160,8 @@ void Server::shutdown(const std::string &reason)
         sendMsg(client, reply);
         disconnectClient(client);
     }
+    if (_server_fd > 0)
+        close(_server_fd);
 }
 void Server::handleRequest(Client &client, const IrcMsg &msg)
 {

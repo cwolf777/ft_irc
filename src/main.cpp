@@ -31,18 +31,20 @@ int main(int argc, char **argv)
         return 1;
     }
 
+    int port = std::atoi(argv[1]);
+    std::string password = argv[2];
+    signal(SIGINT, signalHandler);
+    Server local("bucks34", port, password);
     try
     {
-        int port = std::atoi(argv[1]);
-        std::string password = argv[2];
-        signal(SIGINT, signalHandler);
-        Server local("bucks34", port, password);
         local.init(INADDR_LOOPBACK);
         local.run();
+        local.shutdown("Server shutting down");
     }
     catch (const std::exception &e)
     {
-        std::cerr << "Server Error: " << e.what() << std::endl;
+        std::cerr << Color::RED << "Server Error: " << e.what() << Color::RESET << std::endl;
+        local.shutdown("Server shutting down due to error");
         return 1;
     }
 
