@@ -26,6 +26,10 @@ void handleMode(Client &client, Server &server, const IrcMsg &msg)
         return; // ERR_NOSUCHCHANNEL
     }
 
+    // FOR IRSSI CLIENT BECAUSE IT SENDS MODE #channel b AND WE DONT SUPPORT BAN LISTS
+    if (params[1] == "b")
+        return;
+
     if (!currChannel->isOperator(client))
     {
         std::string reply = ":" + server.getServerName() + " 482 " + client.getNickname() + " " + channelName + " :You're not channel operator\r\n";

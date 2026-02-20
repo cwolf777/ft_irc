@@ -46,8 +46,9 @@ void handleKick(Client &client, Server &server, const IrcMsg &msg)
 
     if (!currChannel->isOperator(client))
     {
-        std::string reply = ":" + server.getServerName() + " 482 " + client.getNickname() + " " + channelName + " :You're not channel operator\r\n";
-        server.sendMsg(client, reply);
+        //  THIS IS COMMENTED OUT BECAUSE OF IRSSI
+        //  std::string reply = ":" + server.getServerName() + " 482 " + client.getNickname() + " " + channelName + " :You're not channel operator\r\n";
+        //  server.sendMsg(client, reply);
         return;
     }
 
@@ -67,19 +68,18 @@ void handleKick(Client &client, Server &server, const IrcMsg &msg)
         return;
     }
 
-    std::string kickMsg = ":" + client.getPrefix() +
-                          " KICK " + channelName + " " + targetNick +
-                          " :" + comment + "\r\n";
+    std::string kickMsg = ":" + client.getPrefix() + " KICK " + channelName + " " + targetNick + " :" + comment + "\r\n";
 
     server.broadcastToChannel(client, *currChannel, kickMsg);
     server.sendMsg(client, kickMsg);
+    server.sendMsg(*target, kickMsg);
 
-    client.leaveChannel(currChannel);
+    target->leaveChannel(currChannel);
 
-    if (currChannel->isOperator(client))
-        currChannel->removeOperator(client);
+    if (currChannel->isOperator(*target))
+        currChannel->removeOperator(*target);
 
-    currChannel->removeMember(client);
+    currChannel->removeMember(*target);
     if (currChannel->getMembers().empty())
         state.removeChannel(*currChannel);
 }
