@@ -34,7 +34,7 @@ int main(int argc, char **argv)
     int port = std::atoi(argv[1]);
     std::string password = argv[2];
     signal(SIGINT, signalHandler);
-    Server local("bucks34", port, password);
+    Server local("bucks34", password, port);
     try
     {
         local.init(INADDR_LOOPBACK);

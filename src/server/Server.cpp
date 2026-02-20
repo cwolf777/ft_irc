@@ -1,10 +1,25 @@
 
 #include "Server.hpp"
+#include <ctime>
 
-Server::Server(const std::string &severName, int port, const std::string &password)
-    : _serverName(severName),
-      _port(port),
+static std::string getCurrentDate()
+{
+    std::time_t now = std::time(nullptr);
+    std::tm *ltm = std::localtime(&now);
+
+    std::array<char, 80> buffer;
+
+    // Format: "10:25:02 Feb 20 2026"
+    std::strftime(buffer.data(), buffer.size(), "%H:%M:%S %b %d %Y", ltm);
+
+    return std::string(buffer.data());
+}
+
+Server::Server(const std::string &serverName, const std::string &password, int port)
+    : _serverName(serverName),
       _password(password),
+      _creationDate(getCurrentDate()),
+      _port(port),
       _server_fd(-1)
 {
     std::fill(_polls.begin(), _polls.end(), pollfd{});
@@ -12,8 +27,9 @@ Server::Server(const std::string &severName, int port, const std::string &passwo
 
 Server::Server(const Server &other)
     : _serverName(other._serverName),
-      _port(other._port),
       _password(other._password),
+      _creationDate(other._creationDate),
+      _port(other._port),
       _server_fd(other._server_fd),
       _polls(other._polls)
 {
@@ -24,8 +40,9 @@ Server &Server::operator=(const Server &other)
     if (this == &other)
         return *this;
     _serverName = other._serverName;
-    _port = other._port;
     _password = other._password;
+    _creationDate = other._creationDate;
+    _port = other._port;
     _server_fd = other._server_fd;
     _polls = other._polls;
     return *this;

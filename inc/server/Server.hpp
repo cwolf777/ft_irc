@@ -38,15 +38,16 @@ class Server
 {
 private:
     std::string _serverName;
-    int _port;
     std::string _password;
+    std::string _creationDate;
+    int _port;
     int _server_fd;
     std::vector<pollfd> _polls;
     CommandDispatcher _commands;
     ServerState _state;
 
 public:
-    Server(const std::string &serverName, int port, const std::string &password);
+    Server(const std::string &serverName, const std::string &password, int port);
     Server(const Server &other);
     Server &operator=(const Server &other);
     ~Server();

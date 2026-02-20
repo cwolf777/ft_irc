@@ -36,8 +36,24 @@ void Server::sendMsg(Client &client, const std::string &msg)
 
 void Server::sendWelcomeMessage(Client &client)
 {
-    std::string msg(":" + _serverName + " 001 " + client.getNickname() + " :Welcome to the IRC Network " + client.getPrefix() + "\r\n");
-    sendMsg(client, msg);
+    std::string nick = client.getNickname();
+    std::string user = client.getUsername();
+    std::string host = client.getHostname();
+
+    // 001: Welcome
+    sendMsg(client, ":" + _serverName + " 001 " + nick + " :Welcome to the IRC Network " + nick + "!" + user + "@" + host + "\r\n");
+
+    // 002: Your Host
+    sendMsg(client, ":" + _serverName + " 002 " + nick + " :Your host is " + _serverName + ", running version 1.0\r\n");
+
+    // 003: Created
+    sendMsg(client, ":" + _serverName + " 003 " + nick + " :This server was created " + _creationDate + "\r\n");
+
+    // 004: MyInfo (Servername, Version, UserModes, ChannelModes)
+    sendMsg(client, ":" + _serverName + " 004 " + nick + " " + _serverName + " 1.0 o i,k,l,t,o\r\n");
+
+    // 005: ISUPPORT (Features supported by the server)
+    sendMsg(client, ":" + _serverName + " 005 " + nick + " CHANMODES=,k,l,it PREFIX=(o)@ :are supported by this server\r\n");
 }
 
 void Server::broadcastToChannel(const Client &client, const Channel &channel, const std::string &msg)
