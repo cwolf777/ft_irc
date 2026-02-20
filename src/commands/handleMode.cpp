@@ -89,8 +89,15 @@ void handleMode(Client &client, Server &server, const IrcMsg &msg)
                 if (paramIndex >= params.size())
                     break;
                 int limit = std::atoi(params[paramIndex++].c_str());
-                if (limit < 0)
-                    limit = 0;
+
+                if (limit <= 0)
+                {
+                    std::string reply = ":" + server.getServerName() + " 461 " +
+                                        client.getNickname() + " MODE :Invalid limit\r\n";
+                    server.sendMsg(client, reply);
+                    break;
+                }
+
                 currChannel->setLimit(limit);
             }
             else
