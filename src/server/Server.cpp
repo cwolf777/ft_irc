@@ -15,6 +15,27 @@ static std::string getCurrentDate()
     return std::string(buffer.data());
 }
 
+volatile sig_atomic_t Server::server_running = 1;
+
+void Server::signalHandler(int sig)
+{
+    (void)sig;
+    server_running = 0;
+}
+
+void Server::setupSignals()
+{
+    struct sigaction sa;
+    sa.sa_handler = signalHandler;
+    sigemptyset(&sa.sa_mask); // stops blocking other signals
+    sa.sa_flags = 0;          // SA_RESTART reset
+
+    // listen SIGINT (Ctrl+C) and SIGTERM
+    sigaction(SIGINT, &sa, NULL);
+    sigaction(SIGTERM, &sa, NULL);
+    sigaction(SIGQUIT, &sa, NULL);
+}
+
 Server::Server(const std::string &serverName, const std::string &password, int port)
     : _serverName(serverName),
       _password(password),
@@ -108,5 +129,6 @@ void Server::init(int domain)
     // Changing _server_fd with Flags to be non blocking i/o
     int flags = fcntl(_server_fd, F_GETFL, 0);
     fcntl(_server_fd, F_SETFL, flags | O_NONBLOCK);
+    setupSignals();
     std::cout << Color::MAGENTA << "server runnning on port " << _port << "..." << Color::RESET << std::endl;
 }

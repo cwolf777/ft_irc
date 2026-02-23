@@ -54,7 +54,11 @@ public:
 
     void init(int domain);
     void run();
+    void shutdown(const std::string &reason);
 
+    static volatile sig_atomic_t server_running;
+    static void signalHandler(int sig);
+    void setupSignals();
     ServerState &getServerState();
     std::string getServerName() const;
     std::string getPassword() const;
@@ -72,5 +76,4 @@ public:
 
     void connectClient();
     void disconnectClient(Client &client);
-    void shutdown(const std::string &reason);
 };
