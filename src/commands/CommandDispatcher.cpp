@@ -42,7 +42,7 @@ void CommandDispatcher::dispatch(Client &client, Server &server, const IrcMsg &m
         return;
     }
 
-    if (it->first != "NICK" && it->first != "USER" && it->first != "PASS" && it->first != "CAP")
+    if (it->first != "NICK" && it->first != "USER" && it->first != "PASS" && it->first != "CAP" && it->first != "QUIT")
     {
         if (!client.getIsRegistered())
         {
