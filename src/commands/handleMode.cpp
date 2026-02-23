@@ -82,8 +82,8 @@ void handleMode(Client &client, Server &server, const IrcMsg &msg)
                                         client.getNickname() + " " + channelName +
                                         " :Channel key already set\r\n";
                     server.sendMsg(client, reply);
-                    paramIndex++;
                 }
+                paramIndex++;
             }
             else
                 currChannel->clearPassword();
